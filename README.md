@@ -1,5 +1,8 @@
 # Express + PostgreSQL starter
 
+Author: Abner Flores
+Birthday: May 21st 2012
+
 A plain HTML, CSS, and JavaScript app served by Express 5 on Node.js 24. Replit supplies the PostgreSQL connection through `DATABASE_URL`; the server uses `pg`.
 
 ## Run
