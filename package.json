@@ -1,0 +1,21 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "Plain HTML, CSS, and JavaScript app with Express 5 and PostgreSQL",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "pg": "^8.23.1"
+  }
+}

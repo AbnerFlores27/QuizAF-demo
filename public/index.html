@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Express + PostgreSQL starter</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <p class="eyebrow">Node.js 24 · Express 5 · PostgreSQL</p>
+        <h1>Your server is ready.</h1>
+        <p class="intro">
+          A plain HTML, CSS, and JavaScript frontend connected to an Express API
+          and Replit PostgreSQL.
+        </p>
+      </header>
+
+      <section class="status-card" aria-labelledby="status-heading">
+        <div>
+          <p class="eyebrow">Server check</p>
+          <h2 id="status-heading">API status</h2>
+        </div>
+        <span id="api-status" class="status-pill" role="status">Checking…</span>
+      </section>
+
+      <section class="demo-card" aria-labelledby="demo-heading">
+        <div class="card-heading">
+          <p class="eyebrow">Database check</p>
+          <h2 id="demo-heading">Run a parameterized query</h2>
+          <p>
+            Your text is sent as a PostgreSQL parameter, not inserted into the SQL string.
+          </p>
+        </div>
+
+        <form id="query-form">
+          <label for="query-text">Text to return from PostgreSQL</label>
+          <div class="form-row">
+            <input
+              id="query-text"
+              name="text"
+              type="text"
+              maxlength="200"
+              placeholder="Hello from PostgreSQL"
+              required
+            >
+            <button type="submit">Run query</button>
+          </div>
+        </form>
+
+        <pre id="query-result" class="result" role="status" aria-live="polite">No query run yet.</pre>
+      </section>
+
+      <footer>
+        Start the server with <code>npm start</code>. The database URL is supplied by Replit.
+      </footer>
+    </main>
+  </body>
+</html>
