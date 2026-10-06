@@ -26,6 +26,13 @@ body {
   padding: 88px 0 42px;
 }
 
+.logo {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  margin-bottom: 24px;
+}
+
 .header {
   margin-bottom: 34px;
 }
