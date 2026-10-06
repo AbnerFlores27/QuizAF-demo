@@ -37,6 +37,15 @@ body {
   margin-bottom: 34px;
 }
 
+.birthday {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 8px 0;
+  text-shadow: 2px 2px 0 #000;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
 .eyebrow {
   margin: 0 0 10px;
   color: #5c6b83;
