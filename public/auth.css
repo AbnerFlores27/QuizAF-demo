@@ -1,0 +1,124 @@
+/* Phase 1: account nav + auth pages. Kept separate from styles.css on purpose. */
+
+.auth-nav {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 8px 0;
+  font-size: 0.95rem;
+}
+
+.auth-nav a,
+.auth-nav button {
+  color: #17243a;
+  text-decoration: none;
+  background: #fff;
+  border: 2px solid #17243a;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.auth-nav a:hover,
+.auth-nav button:hover {
+  background: #f6f7fb;
+}
+
+.nav-user {
+  font-weight: 700;
+  color: #17243a;
+}
+
+.auth-page {
+  max-width: 26rem;
+  margin: 3rem auto;
+  padding: 0 1rem;
+}
+
+.auth-card {
+  background: #fff;
+  border: 2px solid #17243a;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 4px 4px 0 #17243a;
+}
+
+.auth-card h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  color: #17243a;
+}
+
+.auth-card p.sub {
+  margin: 0 0 1rem;
+  color: #5a6474;
+  font-size: 0.95rem;
+}
+
+.auth-card label {
+  display: block;
+  font-weight: 600;
+  margin: 0.75rem 0 0.25rem;
+  color: #17243a;
+}
+
+.auth-card input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.75rem;
+  border: 2px solid #c9cedb;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.auth-card input:focus {
+  outline: none;
+  border-color: #fbd000;
+  box-shadow: 0 0 0 3px rgba(251, 208, 0, 0.35);
+}
+
+.auth-card button {
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.7rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: #e52521;
+  border: 2px solid #17243a;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 #17243a;
+}
+
+.auth-card button:hover {
+  background: #c91f1c;
+}
+
+.auth-card button:disabled {
+  background: #c9cedb;
+  cursor: wait;
+}
+
+.auth-message {
+  min-height: 1.2rem;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.auth-message.error {
+  color: #e52521;
+  font-weight: 600;
+}
+
+.auth-alt {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.auth-alt a {
+  color: #0b45d0;
+}

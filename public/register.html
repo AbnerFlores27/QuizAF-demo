@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Register - Abner's Quiz Site</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/auth.css">
+    <script src="/auth.js" defer></script>
+  </head>
+  <body>
+    <main class="auth-page">
+      <section class="auth-card">
+        <h1>New player</h1>
+        <p class="sub">Create an account to save your quiz progress.</p>
+        <form id="register-form">
+          <label for="username">Username (shown on leaderboards)</label>
+          <input id="username" name="username" type="text" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" title="3-30 letters, numbers, or underscores" autocomplete="username" required>
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" maxlength="255" autocomplete="email" required>
+          <label for="password">Password (at least 8 characters)</label>
+          <input id="password" name="password" type="password" minlength="8" maxlength="200" autocomplete="new-password" required>
+          <label for="confirm_password">Confirm password</label>
+          <input id="confirm_password" name="confirm_password" type="password" minlength="8" maxlength="200" autocomplete="new-password" required>
+          <button type="submit">Create account</button>
+          <p id="auth-message" class="auth-message" role="alert" aria-live="polite"></p>
+        </form>
+        <p class="auth-alt">Already have an account? <a href="/login.html">Log in</a></p>
+      </section>
+    </main>
+  </body>
+</html>
