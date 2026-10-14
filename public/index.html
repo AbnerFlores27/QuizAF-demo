@@ -3,61 +3,25 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#ffffff">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <title>Abner's Quiz Site</title>
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/auth.css">
     <script src="/app.js" defer></script>
+    <script src="/auth.js" defer></script>
   </head>
   <body>
-    <main class="page">
-      <header class="header">
-        <h1 style="color: #17243a;">Abner's Quiz Site</h1>
-        <p class="birthday" style="color: #FF6B6B;">May 21st 2012</p>
-        <p class="intro">
-          A plain HTML, CSS, and JavaScript frontend connected to an Express API
-          and Replit PostgreSQL.
-        </p>
-      </header>
+    <main>
+      <nav id="auth-nav" class="auth-nav" aria-label="Account"></nav>
+      <h1>Abner's Quiz Site</h1>
+      <p>This is the working title. We'll change this later.</p>
 
-      <section class="status-card" aria-labelledby="status-heading">
-        <div>
-          <p class="eyebrow">Server check</p>
-          <h2 id="status-heading">API status</h2>
-        </div>
-        <span id="api-status" class="status-pill" role="status">Checking…</span>
-      </section>
-
-      <section class="demo-card" aria-labelledby="demo-heading">
-        <div class="card-heading">
-          <p class="eyebrow">Database check</p>
-          <h2 id="demo-heading">Run a parameterized query</h2>
-          <p>
-            Your text is sent as a PostgreSQL parameter, not inserted into the SQL string.
-          </p>
-        </div>
-
-        <form id="query-form">
-          <label for="query-text">Text to return from PostgreSQL</label>
-          <div class="form-row">
-            <input
-              id="query-text"
-              name="text"
-              type="text"
-              maxlength="200"
-              placeholder="Hello from PostgreSQL"
-              required
-            >
-            <button type="submit">Run query</button>
-          </div>
-        </form>
-
-        <pre id="query-result" class="result" role="status" aria-live="polite">No query run yet.</pre>
-      </section>
-
-      <footer>
-        Start the server with <code>npm start</code>. The database URL is supplied by Replit.
-      </footer>
+      <form id="name-form">
+        <label for="name-input">Write a message to save to the database</label>
+        <input id="name-input" name="text" type="text" maxlength="200" placeholder="Hello, database!" required />
+        <button type="submit">Save to the database</button>
+      </form>
+      <p id="response"></p>
     </main>
   </body>
 </html>

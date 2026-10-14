@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "setup": "node db/setup.js",
+    "seed": "node db/seed-admin.js"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +17,9 @@
     "node": ">=24 <25"
   },
   "dependencies": {
+    "connect-pg-simple": "^10.0.0",
     "express": "^5.2.1",
+    "express-session": "^1.18.1",
     "pg": "^8.23.1"
   }
 }
