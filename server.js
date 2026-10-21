@@ -52,6 +52,17 @@ app.post("/api/quiz/init", async (_request, response) => {
   try {
     const client = await pool.connect();
     
+    // Create users table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(100) UNIQUE NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Create questions table
     await client.query(`
       CREATE TABLE IF NOT EXISTS questions (
@@ -383,6 +394,137 @@ app.get("/api/quiz/leaderboard", async (request, response) => {
   }
 });
 
+// User authentication endpoints
+
+// Initialize users table
+app.post("/api/auth/init", async (_request, response) => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(100) UNIQUE NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    return response.json({ 
+      status: "ok", 
+      message: "Users table initialized successfully." 
+    });
+  } catch (error) {
+    console.error("Users table initialization failed:", error);
+    return response.status(503).json({ 
+      error: "Unable to initialize users table.",
+      details: error.message 
+    });
+  }
+});
+
+// Login endpoint
+app.post("/api/auth/login", async (request, response) => {
+  const { username, password } = request.body;
+  
+  if (!username || !password) {
+    return response.status(400).json({ error: "Username and password are required." });
+  }
+  
+  try {
+    const result = await pool.query(
+      "SELECT * FROM users WHERE username = $1",
+      [username]
+    );
+    
+    const user = result.rows[0];
+    
+    if (!user) {
+      return response.status(401).json({ error: "Invalid credentials." });
+    }
+    
+    // Simple password check (in production, use bcrypt)
+    if (user.password !== password) {
+      return response.status(401).json({ error: "Invalid credentials." });
+    }
+    
+    return response.json({
+      status: "ok",
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error("Login failed:", error);
+    return response.status(500).json({ error: "Login failed." });
+  }
+});
+
+// Register endpoint
+app.post("/api/auth/register", async (request, response) => {
+  const { username, email, password } = request.body;
+  
+  if (!username || !email || !password) {
+    return response.status(400).json({ error: "All fields are required." });
+  }
+  
+  if (password.length < 8) {
+    return response.status(400).json({ error: "Password must be at least 8 characters." });
+  }
+  
+  try {
+    // Check if username already exists
+    const existingUser = await pool.query(
+      "SELECT * FROM users WHERE username = $1 OR email = $2",
+      [username, email]
+    );
+    
+    if (existingUser.rows.length > 0) {
+      return response.status(400).json({ error: "Username or email already exists." });
+    }
+    
+    // Create user (in production, hash the password with bcrypt)
+    const result = await pool.query(
+      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email",
+      [username, email, password]
+    );
+    
+    return response.json({
+      status: "ok",
+      user: result.rows[0]
+    });
+  } catch (error) {
+    console.error("Registration failed:", error);
+    return response.status(500).json({ error: "Registration failed." });
+  }
+});
+
+// Get user profile
+app.get("/api/auth/me", async (request, response) => {
+  const username = request.headers['x-username'];
+  
+  if (!username) {
+    return response.status(401).json({ error: "Not authenticated." });
+  }
+  
+  try {
+    const result = await pool.query(
+      "SELECT id, username, email FROM users WHERE username = $1",
+      [username]
+    );
+    
+    if (result.rows.length === 0) {
+      return response.status(404).json({ error: "User not found." });
+    }
+    
+    return response.json({ user: result.rows[0] });
+  } catch (error) {
+    console.error("Get user failed:", error);
+    return response.status(500).json({ error: "Get user failed." });
+  }
+});
+
 // Add a new question
 app.post("/api/quiz/questions", async (request, response) => {
   const { questionText, optionA, optionB, optionC, optionD, correctAnswer, category, difficulty } = request.body;
@@ -487,14 +629,24 @@ app.use("/api", (_request, response) => {
   response.status(404).json({ error: "API route not found." });
 });
 
+// Serve login.html at /login
+app.get("/login", (_request, response) => {
+  response.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
 // Serve quiz.html at /quiz
 app.get("/quiz", (_request, response) => {
   response.sendFile(path.join(__dirname, "public", "quiz.html"));
 });
 
-// Redirect root to quiz
+// Serve home page at root
+app.get("/home", (_request, response) => {
+  response.sendFile(path.join(__dirname, "public", "home.html"));
+});
+
+// Redirect root to home
 app.get("/", (_request, response) => {
-  response.redirect("/quiz");
+  response.redirect("/home");
 });
 
 app.listen(port, "0.0.0.0", () => {

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#17243a">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Login - Quiz App</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <h1 style="color: #17243a;">Quiz App</h1>
+        <p class="birthday" style="color: #FF6B6B;">Welcome Back!</p>
+      </header>
+
+      <section class="login-card">
+        <div class="card-heading">
+          <p class="eyebrow">Authentication</p>
+          <h2>Sign In</h2>
+          <p>Enter your credentials to access the quiz</p>
+        </div>
+
+        <form id="login-form" class="login-form">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Enter your username"
+              required
+              autocomplete="username"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              required
+              autocomplete="current-password"
+            >
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" id="login-btn">
+              <span id="login-text">Sign In</span>
+              <span id="login-spinner" class="spinner" style="display: none;"></span>
+            </button>
+          </div>
+
+          <div id="login-error" class="error-message" style="display: none;"></div>
+        </form>
+
+        <div class="login-divider">
+          <span>or</span>
+        </div>
+
+        <div class="guest-actions">
+          <button id="guest-btn" class="btn-secondary">
+            Continue as Guest
+          </button>
+        </div>
+
+        <div class="login-footer">
+          <p>Don't have an account? 
+            <button id="register-link" class="link-button">Register</button>
+          </p>
+        </div>
+      </section>
+
+      <section id="register-section" class="register-card" style="display: none;">
+        <div class="card-heading">
+          <p class="eyebrow">Create Account</p>
+          <h2>Sign Up</h2>
+          <p>Create a new account to save your progress</p>
+        </div>
+
+        <form id="register-form" class="register-form">
+          <div class="form-group">
+            <label for="reg-username">Username</label>
+            <input
+              type="text"
+              id="reg-username"
+              name="username"
+              placeholder="Choose a username"
+              required
+              autocomplete="username"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="reg-email">Email</label>
+            <input
+              type="email"
+              id="reg-email"
+              name="email"
+              placeholder="Enter your email"
+              required
+              autocomplete="email"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <input
+              type="password"
+              id="reg-password"
+              name="password"
+              placeholder="Create a password"
+              required
+              autocomplete="new-password"
+              minlength="8"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="reg-confirm">Confirm Password</label>
+            <input
+              type="password"
+              id="reg-confirm"
+              name="confirmPassword"
+              placeholder="Confirm your password"
+              required
+              autocomplete="new-password"
+            >
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" id="register-btn">
+              <span id="register-text">Create Account</span>
+              <span id="register-spinner" class="spinner" style="display: none;"></span>
+            </button>
+          </div>
+
+          <div id="register-error" class="error-message" style="display: none;"></div>
+        </form>
+
+        <div class="login-footer">
+          <p>Already have an account? 
+            <button id="login-link" class="link-button">Sign In</button>
+          </p>
+        </div>
+      </section>
+
+      <footer>
+        <p>Quiz App with Express, PostgreSQL, and Replit</p>
+      </footer>
+    </main>
+  </body>
+</html>

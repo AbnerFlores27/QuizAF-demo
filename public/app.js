@@ -8,7 +8,39 @@ const QuizState = {
   SETUP: 'setup'
 };
 
-// DOM Elements
+// DOM Elements - Check which page we're on
+const isHomePage = document.querySelector('#stats-section') !== null;
+const isLoginPage = document.querySelector('#login-form') !== null;
+const isQuizPage = document.querySelector('#quiz-section') !== null;
+
+// Home Page Elements
+const startQuizBtn = document.querySelector('#start-quiz-btn');
+const guestQuizBtn = document.querySelector('#guest-quiz-btn');
+const statsSection = document.querySelector('#stats-section');
+const statsGrid = document.querySelector('#stats-grid');
+const totalQuestionsStat = document.querySelector('#total-questions-stat');
+const totalScoresStat = document.querySelector('#total-scores-stat');
+const avgScoreStat = document.querySelector('#avg-score-stat');
+const leaderboardPreview = document.querySelector('#leaderboard-preview');
+
+// Login Page Elements
+const loginForm = document.querySelector('#login-form');
+const registerForm = document.querySelector('#register-form');
+const loginSection = document.querySelector('#login-section');
+const registerSection = document.querySelector('#register-section');
+const loginBtn = document.querySelector('#login-btn');
+const loginText = document.querySelector('#login-text');
+const loginSpinner = document.querySelector('#login-spinner');
+const loginError = document.querySelector('#login-error');
+const registerBtn = document.querySelector('#register-btn');
+const registerText = document.querySelector('#register-text');
+const registerSpinner = document.querySelector('#register-spinner');
+const registerError = document.querySelector('#register-error');
+const guestBtn = document.querySelector('#guest-btn');
+const registerLink = document.querySelector('#register-link');
+const loginLink = document.querySelector('#login-link');
+
+// Quiz Page Elements
 const apiStatus = document.querySelector("#api-status");
 const quizSection = document.querySelector("#quiz-section");
 const resultsSection = document.querySelector("#results-section");
@@ -52,13 +84,18 @@ let currentQuestionIndex = 0;
 let userAnswers = [];
 let score = 0;
 let playerName = '';
+let currentUser = null;
 
 // Initialize the application
 async function init() {
   checkApi();
   
-  // Check if we're on the quiz page
-  if (quizSection) {
+  // Route based on page
+  if (isHomePage) {
+    loadHomePage();
+  } else if (isLoginPage) {
+    setupLoginPage();
+  } else if (isQuizPage) {
     loadQuiz();
   }
   
@@ -88,6 +125,46 @@ async function checkApi() {
 
 // Setup all event listeners
 function setupEventListeners() {
+  // Home page events
+  if (startQuizBtn) {
+    startQuizBtn.addEventListener('click', () => window.location.href = '/login');
+  }
+  
+  if (guestQuizBtn) {
+    guestQuizBtn.addEventListener('click', () => window.location.href = '/quiz');
+  }
+  
+  // Login page events
+  if (loginForm) {
+    loginForm.addEventListener('submit', handleLogin);
+  }
+  
+  if (registerForm) {
+    registerForm.addEventListener('submit', handleRegister);
+  }
+  
+  if (registerLink) {
+    registerLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      showRegister();
+    });
+  }
+  
+  if (loginLink) {
+    loginLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      showLogin();
+    });
+  }
+  
+  if (guestBtn) {
+    guestBtn.addEventListener('click', () => {
+      // Store guest session
+      sessionStorage.setItem('user', JSON.stringify({ username: 'Guest', isGuest: true }));
+      window.location.href = '/quiz';
+    });
+  }
+  
   // Quiz navigation
   if (prevBtn) {
     prevBtn.addEventListener('click', () => navigateQuestion(-1));
@@ -133,10 +210,221 @@ function setupEventListeners() {
   }
 }
 
+// Load home page data
+async function loadHomePage() {
+  try {
+    // Load stats
+    const statsResponse = await fetch("/api/quiz/stats");
+    if (statsResponse.ok) {
+      const stats = await statsResponse.json();
+      if (totalQuestionsStat) totalQuestionsStat.textContent = stats.total_questions || 0;
+      if (totalScoresStat) totalScoresStat.textContent = stats.total_scores || 0;
+      
+      // Calculate average score
+      if (stats.total_scores > 0) {
+        const leaderboardResponse = await fetch("/api/quiz/leaderboard?limit=100");
+        if (leaderboardResponse.ok) {
+          const entries = await leaderboardResponse.json();
+          if (entries.length > 0) {
+            const avgPercentage = entries.reduce((sum, entry) => sum + entry.percentage, 0) / entries.length;
+            if (avgScoreStat) avgScoreStat.textContent = `${Math.round(avgPercentage)}%`;
+          }
+        }
+      }
+      if (statsSection) statsSection.style.display = 'block';
+    }
+    
+    // Load leaderboard preview
+    const leaderboardResponse = await fetch("/api/quiz/leaderboard?limit=5");
+    if (leaderboardResponse.ok) {
+      const entries = await leaderboardResponse.json();
+      if (leaderboardPreview) {
+        if (entries.length === 0) {
+          leaderboardPreview.innerHTML = '<div class="empty-state">No scores yet. Be the first!</div>';
+        } else {
+          leaderboardPreview.innerHTML = `
+            <div class="leaderboard-table-header" style="display: grid; grid-template-columns: 40px 1fr 80px; gap: 12px; padding: 12px 14px; font-size: 0.85rem; font-weight: 700; color: #5c6b83; background: #f8f9fa; border-radius: 8px 8px 0 0;">
+              <span style="text-align: center;">Rank</span>
+              <span>Name</span>
+              <span style="text-align: center;">Score</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 40px 1fr 80px; gap: 12px; background: #f8f9fa; border-radius: 0 0 8px 8px; overflow: hidden;">
+              ${entries.map((entry, index) => `
+                <span style="padding: 12px 14px; text-align: center; font-weight: 700; color: #315ed5;">${index + 1}</span>
+                <span style="padding: 12px 14px; font-weight: 500;">${entry.player_name}</span>
+                <span style="padding: 12px 14px; text-align: center; font-weight: 700; color: #14724b;">${entry.score}/${entry.total_questions}</span>
+              `).join('')}
+            </div>
+          `;
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error loading home page:", error);
+  }
+}
+
+// Setup login page
+function setupLoginPage() {
+  // Check if already logged in
+  const user = sessionStorage.getItem('user');
+  if (user) {
+    window.location.href = '/quiz';
+  }
+}
+
+// Handle login
+async function handleLogin(event) {
+  event.preventDefault();
+  
+  const username = document.querySelector('#username').value.trim();
+  const password = document.querySelector('#password').value;
+  
+  if (!username || !password) {
+    showLoginError('Please enter both username and password.');
+    return;
+  }
+  
+  // Show loading state
+  loginText.style.display = 'none';
+  loginSpinner.style.display = 'inline-block';
+  loginBtn.disabled = true;
+  
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, password })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Login failed.');
+    }
+    
+    // Store user in session
+    sessionStorage.setItem('user', JSON.stringify({
+      username: data.user.username,
+      email: data.user.email,
+      isGuest: false
+    }));
+    
+    // Redirect to quiz
+    window.location.href = '/quiz';
+    
+  } catch (error) {
+    showLoginError(error.message);
+    loginText.style.display = 'inline';
+    loginSpinner.style.display = 'none';
+    loginBtn.disabled = false;
+  }
+}
+
+// Handle registration
+async function handleRegister(event) {
+  event.preventDefault();
+  
+  const username = document.querySelector('#reg-username').value.trim();
+  const email = document.querySelector('#reg-email').value.trim();
+  const password = document.querySelector('#reg-password').value;
+  const confirmPassword = document.querySelector('#reg-confirm').value;
+  
+  if (!username || !email || !password || !confirmPassword) {
+    showRegisterError('Please fill in all fields.');
+    return;
+  }
+  
+  if (password !== confirmPassword) {
+    showRegisterError('Passwords do not match.');
+    return;
+  }
+  
+  if (password.length < 8) {
+    showRegisterError('Password must be at least 8 characters.');
+    return;
+  }
+  
+  // Show loading state
+  registerText.style.display = 'none';
+  registerSpinner.style.display = 'inline-block';
+  registerBtn.disabled = true;
+  
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, email, password })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Registration failed.');
+    }
+    
+    // Store user in session
+    sessionStorage.setItem('user', JSON.stringify({
+      username: data.user.username,
+      email: data.user.email,
+      isGuest: false
+    }));
+    
+    // Redirect to quiz
+    window.location.href = '/quiz';
+    
+  } catch (error) {
+    showRegisterError(error.message);
+    registerText.style.display = 'inline';
+    registerSpinner.style.display = 'none';
+    registerBtn.disabled = false;
+  }
+}
+
+// Show login form
+function showLogin() {
+  if (registerSection) registerSection.style.display = 'none';
+  if (loginSection) loginSection.style.display = 'block';
+  if (loginError) loginError.style.display = 'none';
+}
+
+// Show register form
+function showRegister() {
+  if (loginSection) loginSection.style.display = 'none';
+  if (registerSection) registerSection.style.display = 'block';
+  if (registerError) registerError.style.display = 'none';
+}
+
+// Show login error
+function showLoginError(message) {
+  if (loginError) {
+    loginError.textContent = message;
+    loginError.style.display = 'block';
+  }
+}
+
+// Show register error
+function showRegisterError(message) {
+  if (registerError) {
+    registerError.textContent = message;
+    registerError.style.display = 'block';
+  }
+}
+
 // Load quiz questions
 async function loadQuiz() {
   state = QuizState.LOADING;
   showLoadingState();
+  
+  // Check if user is logged in
+  const user = sessionStorage.getItem('user');
+  if (user) {
+    currentUser = JSON.parse(user);
+  }
   
   try {
     const response = await fetch("/api/quiz/questions");
@@ -179,14 +467,14 @@ function showQuestion() {
   if (!question) return;
   
   // Update question number
-  questionNumberEl.textContent = currentQuestionIndex + 1;
-  totalQuestionsEl.textContent = questions.length;
+  if (questionNumberEl) questionNumberEl.textContent = currentQuestionIndex + 1;
+  if (totalQuestionsEl) totalQuestionsEl.textContent = questions.length;
   
   // Update question text
-  questionTextEl.textContent = question.question_text;
+  if (questionTextEl) questionTextEl.textContent = question.question_text;
   
   // Clear previous options
-  optionsContainerEl.innerHTML = '';
+  if (optionsContainerEl) optionsContainerEl.innerHTML = '';
   
   // Create option elements
   const options = [
@@ -246,27 +534,33 @@ function showQuestion() {
       updateButtonVisibility();
     });
     
-    optionsContainerEl.appendChild(optionEl);
+    if (optionsContainerEl) optionsContainerEl.appendChild(optionEl);
   });
   
   // Clear feedback
-  feedbackEl.textContent = '';
-  feedbackEl.className = 'feedback';
+  if (feedbackEl) {
+    feedbackEl.textContent = '';
+    feedbackEl.className = 'feedback';
+  }
 }
 
 // Check if answer is correct
 function checkAnswer(selected, correct) {
-  if (selected === correct) {
-    showFeedback('Correct!', 'correct');
-  } else {
-    showFeedback('Incorrect. Try again!', 'incorrect');
+  if (feedbackEl) {
+    if (selected === correct) {
+      showFeedback('Correct!', 'correct');
+    } else {
+      showFeedback('Incorrect. Try again!', 'incorrect');
+    }
   }
 }
 
 // Show feedback message
 function showFeedback(message, type = 'info') {
-  feedbackEl.textContent = message;
-  feedbackEl.className = `feedback ${type}`;
+  if (feedbackEl) {
+    feedbackEl.textContent = message;
+    feedbackEl.className = `feedback ${type}`;
+  }
 }
 
 // Navigate between questions
@@ -287,19 +581,19 @@ function updateButtonVisibility() {
   if (state !== QuizState.QUIZ) return;
   
   // Previous button
-  prevBtn.disabled = currentQuestionIndex === 0;
+  if (prevBtn) prevBtn.disabled = currentQuestionIndex === 0;
   
   // Next button
   const hasAnswered = userAnswers[currentQuestionIndex] !== null;
   
   // Show submit button on last question
   if (currentQuestionIndex === questions.length - 1) {
-    nextBtn.style.display = 'none';
-    submitBtn.style.display = 'block';
-    submitBtn.disabled = !hasAnswered;
+    if (nextBtn) nextBtn.style.display = 'none';
+    if (submitBtn) submitBtn.style.display = 'block';
+    if (submitBtn) submitBtn.disabled = !hasAnswered;
   } else {
-    nextBtn.style.display = 'block';
-    submitBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'block';
+    if (submitBtn) submitBtn.style.display = 'none';
   }
 }
 
@@ -325,20 +619,22 @@ function submitQuiz() {
 
 // Show results
 function showResults() {
-  quizSection.style.display = 'none';
-  resultsSection.style.display = 'block';
+  if (quizSection) quizSection.style.display = 'none';
+  if (resultsSection) resultsSection.style.display = 'block';
   
   // Update score display
-  scoreDisplayEl.textContent = score;
-  totalDisplayEl.textContent = questions.length;
+  if (scoreDisplayEl) scoreDisplayEl.textContent = score;
+  if (totalDisplayEl) totalDisplayEl.textContent = questions.length;
   
   const percentage = Math.round((score / questions.length) * 100 * 100) / 100;
-  percentageDisplayEl.textContent = `${percentage}%`;
+  if (percentageDisplayEl) percentageDisplayEl.textContent = `${percentage}%`;
   
   // Show details
-  resultsDetailsEl.innerHTML = '';
+  if (resultsDetailsEl) resultsDetailsEl.innerHTML = '';
   
   questions.forEach((question, index) => {
+    if (!resultsDetailsEl) return;
+    
     const resultItem = document.createElement('div');
     resultItem.className = `result-item ${
       userAnswers[index] === question.correct_answer ? 'correct' : 'incorrect'
@@ -372,8 +668,8 @@ function getOptionText(question, label) {
 
 // Restart quiz
 function restartQuiz() {
-  resultsSection.style.display = 'none';
-  quizSection.style.display = 'block';
+  if (resultsSection) resultsSection.style.display = 'none';
+  if (quizSection) quizSection.style.display = 'block';
   state = QuizState.QUIZ;
   
   // Reload questions
@@ -383,16 +679,16 @@ function restartQuiz() {
 // Show leaderboard
 async function showLeaderboard(fromResults = true) {
   if (fromResults) {
-    resultsSection.style.display = 'none';
+    if (resultsSection) resultsSection.style.display = 'none';
   } else {
-    quizSection.style.display = 'none';
+    if (quizSection) quizSection.style.display = 'none';
   }
   
-  leaderboardSection.style.display = 'block';
+  if (leaderboardSection) leaderboardSection.style.display = 'block';
   state = QuizState.LEADERBOARD;
   
   // Clear previous entries
-  leaderboardEntriesEl.innerHTML = '';
+  if (leaderboardEntriesEl) leaderboardEntriesEl.innerHTML = '';
   
   // Load leaderboard data
   try {
@@ -405,12 +701,14 @@ async function showLeaderboard(fromResults = true) {
     const entries = await response.json();
     
     if (entries.length === 0) {
-      leaderboardEntriesEl.innerHTML = '<div class="empty-state">No scores yet. Be the first!</div>';
+      if (leaderboardEntriesEl) leaderboardEntriesEl.innerHTML = '<div class="empty-state">No scores yet. Be the first!</div>';
       return;
     }
     
     // Populate leaderboard
     entries.forEach((entry, index) => {
+      if (!leaderboardEntriesEl) return;
+      
       const entryEl = document.createElement('div');
       entryEl.className = 'leaderboard-entry';
       
@@ -428,13 +726,15 @@ async function showLeaderboard(fromResults = true) {
     
     // If coming from results, pre-fill the name and show form
     if (fromResults) {
-      playerNameInput.value = '';
-      playerNameInput.focus();
+      if (playerNameInput) {
+        playerNameInput.value = currentUser && !currentUser.isGuest ? currentUser.username : '';
+        playerNameInput.focus();
+      }
     }
     
   } catch (error) {
     console.error("Error loading leaderboard:", error);
-    leaderboardEntriesEl.innerHTML = '<div class="empty-state">Error loading leaderboard.</div>';
+    if (leaderboardEntriesEl) leaderboardEntriesEl.innerHTML = '<div class="empty-state">Error loading leaderboard.</div>';
   }
 }
 
@@ -442,7 +742,15 @@ async function showLeaderboard(fromResults = true) {
 async function saveScore(event) {
   event.preventDefault();
   
-  const playerName = playerNameInput.value.trim();
+  let playerName = '';
+  if (playerNameInput) {
+    playerName = playerNameInput.value.trim();
+  }
+  
+  // Use logged in user if available
+  if (currentUser && !currentUser.isGuest) {
+    playerName = currentUser.username;
+  }
   
   if (!playerName) {
     showFeedback('Please enter your name.', 'error');
@@ -482,19 +790,21 @@ async function saveScore(event) {
 
 // Show setup section
 function showSetup() {
-  quizSection.style.display = 'none';
-  setupSection.style.display = 'block';
+  if (quizSection) quizSection.style.display = 'none';
+  if (setupSection) setupSection.style.display = 'block';
   state = QuizState.SETUP;
   
-  setupResultEl.textContent = 'No questions found. Initialize the database and load sample questions.';
+  if (setupResultEl) setupResultEl.textContent = 'No questions found. Initialize the database and load sample questions.';
 }
 
 // Initialize database
 async function initializeDatabase() {
   if (initDbBtn) initDbBtn.disabled = true;
-  setupResultEl.textContent = 'Initializing database...';
+  if (setupResultEl) setupResultEl.textContent = 'Initializing database...';
   
   try {
+    // Initialize all tables
+    await fetch("/api/auth/init", { method: 'POST' });
     const response = await fetch("/api/quiz/init", {
       method: 'POST'
     });
@@ -504,11 +814,11 @@ async function initializeDatabase() {
     }
     
     const result = await response.json();
-    setupResultEl.textContent = result.message || 'Database initialized successfully!';
+    if (setupResultEl) setupResultEl.textContent = result.message || 'Database initialized successfully!';
     
   } catch (error) {
     console.error("Error initializing database:", error);
-    setupResultEl.textContent = `Error: ${error.message}`;
+    if (setupResultEl) setupResultEl.textContent = `Error: ${error.message}`;
   } finally {
     if (initDbBtn) initDbBtn.disabled = false;
   }
@@ -517,7 +827,7 @@ async function initializeDatabase() {
 // Load sample questions
 async function loadSampleQuestions() {
   if (loadSampleBtn) loadSampleBtn.disabled = true;
-  setupResultEl.textContent = 'Loading sample questions...';
+  if (setupResultEl) setupResultEl.textContent = 'Loading sample questions...';
   
   try {
     const response = await fetch("/api/quiz/sample-questions", {
@@ -529,18 +839,18 @@ async function loadSampleQuestions() {
     }
     
     const result = await response.json();
-    setupResultEl.textContent = result.message || 'Sample questions loaded successfully!';
+    if (setupResultEl) setupResultEl.textContent = result.message || 'Sample questions loaded successfully!';
     
     // Reload quiz after loading questions
     setTimeout(() => {
-      setupSection.style.display = 'none';
-      quizSection.style.display = 'block';
+      if (setupSection) setupSection.style.display = 'none';
+      if (quizSection) quizSection.style.display = 'block';
       loadQuiz();
     }, 1000);
     
   } catch (error) {
     console.error("Error loading sample questions:", error);
-    setupResultEl.textContent = `Error: ${error.message}`;
+    if (setupResultEl) setupResultEl.textContent = `Error: ${error.message}`;
   } finally {
     if (loadSampleBtn) loadSampleBtn.disabled = false;
   }

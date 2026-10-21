@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#17243a">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>Home - Quiz App</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <h1 style="color: #17243a;">Quiz App</h1>
+        <p class="birthday" style="color: #FF6B6B;">Test Your Knowledge!</p>
+      </header>
+
+      <section class="home-card">
+        <div class="card-heading">
+          <p class="eyebrow">Welcome</p>
+          <h2>Ready to Quiz?</h2>
+          <p>Sign in to track your progress and compete on the leaderboard</p>
+        </div>
+
+        <div class="home-actions">
+          <a href="/login" class="btn-primary" style="text-decoration: none; display: inline-block;">
+            <button class="btn-primary" id="start-quiz-btn">Sign In</button>
+          </a>
+          <a href="/quiz" class="btn-secondary" style="text-decoration: none; display: inline-block;">
+            <button class="btn-secondary" id="guest-quiz-btn">Start Quiz as Guest</button>
+          </a>
+        </div>
+
+        <div class="home-features">
+          <div class="feature">
+            <h3>📚 Multiple Categories</h3>
+            <p>Test your knowledge across various subjects</p>
+          </div>
+          <div class="feature">
+            <h3>🏆 Leaderboard</h3>
+            <p>Compete with others and track your progress</p>
+          </div>
+          <div class="feature">
+            <h3>📊 Statistics</h3>
+            <p>See your performance and improvement over time</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats-card" id="stats-section" style="display: none;">
+        <div class="card-heading">
+          <p class="eyebrow">Statistics</p>
+          <h2>Quiz Stats</h2>
+        </div>
+        
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-item">
+            <span class="stat-value" id="total-questions-stat">0</span>
+            <span class="stat-label">Total Questions</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="total-scores-stat">0</span>
+            <span class="stat-label">Scores Submitted</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="avg-score-stat">0%</span>
+            <span class="stat-label">Average Score</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="leaderboard-preview-card">
+        <div class="card-heading">
+          <p class="eyebrow">Leaderboard</p>
+          <h2>Top 5 Scores</h2>
+        </div>
+        
+        <div id="leaderboard-preview" class="leaderboard-preview">
+          <div class="loading-state">Loading leaderboard...</div>
+        </div>
+        
+        <div class="preview-actions">
+          <a href="/quiz" class="btn-secondary" style="text-decoration: none;">
+            <button class="btn-secondary">View Full Leaderboard</button>
+          </a>
+        </div>
+      </section>
+
+      <footer>
+        <p>Quiz App with Express, PostgreSQL, and Replit</p>
+      </footer>
+    </main>
+  </body>
+</html>
