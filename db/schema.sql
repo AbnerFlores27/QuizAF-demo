@@ -1,5 +1,5 @@
--- Phase 1 schema: the user system only (users + sessions).
--- Later phases add quizzes, questions, attempts, and power-up tables.
+-- Phase 1 schema: the user system (users + sessions) plus the admin
+-- access log. Later phases add quizzes, questions, attempts, and power-up tables.
 
 CREATE TABLE IF NOT EXISTS users (
   id            BIGSERIAL PRIMARY KEY,
@@ -18,3 +18,13 @@ CREATE TABLE IF NOT EXISTS "session" (
 );
 
 CREATE INDEX IF NOT EXISTS idx_session_expire ON "session" (expire);
+
+-- Every attempt to reach an admin-only route gets recorded here,
+-- allowed or denied. The real admin sees the list in the Control Room.
+CREATE TABLE IF NOT EXISTS admin_access_log (
+  id         BIGSERIAL PRIMARY KEY,
+  username   VARCHAR(64),
+  endpoint   VARCHAR(100) NOT NULL,
+  allowed    BOOLEAN      NOT NULL,
+  created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
