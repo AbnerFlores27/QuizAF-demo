@@ -1,1 +1,488 @@
-__CSS_CONTENT__
+/* Abner's Arcade v4 - pixel-art entrance, Control Room panel, glow everywhere */
+
+body {
+  background: #0b0f1e;
+  color: #e6e9f5;
+}
+
+.arcade-room {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 20px 10px;
+}
+
+/* Dark vignette so the room feels lit only by the neon. */
+.arcade-room::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(3, 5, 12, 0.55) 100%);
+}
+
+#room-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.machine-wrap {
+  position: relative;
+  z-index: 2;
+  width: 396px;
+  max-width: 94vw;
+  transition: transform 1.1s cubic-bezier(0.22, 0.9, 0.35, 1);
+  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.65));
+}
+
+/* Two-stage zoom: dramatic for the coin, comfortable for the forms. */
+.arcade-room.zoomed .machine-wrap { transform: scale(2.05); }
+.arcade-room.zoomed.form-view .machine-wrap { transform: scale(1.38); }
+.arcade-room.zoomed.skip-anim .machine-wrap { transition: none; }
+
+#machine-canvas {
+  display: block;
+  width: 100%;
+  image-rendering: pixelated;
+}
+
+/* Overlays are positioned by arcade.js using percentages of the wrap,
+   so they always sit exactly on the pixel art, at any screen size. */
+.marquee-overlay {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 13px;
+  color: #ffffff;
+  background: linear-gradient(180deg, rgba(255, 45, 149, 0.18), rgba(0, 0, 0, 0.35));
+  text-align: center;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 4px;
+  animation: marquee-hum 3.5s infinite;
+}
+
+/* A neon sign never holds still - it hums and flickers a little. */
+@keyframes marquee-hum {
+  0%, 90%, 100% { text-shadow: 0 0 6px #ffffff, 0 0 14px #ff2d95, 0 0 26px #ff2d95; }
+  92% { opacity: 0.55; text-shadow: 0 0 4px #ffffff; }
+  94% { opacity: 1; }
+  96% { opacity: 0.7; }
+  98% { opacity: 1; }
+}
+
+.screen-overlay {
+  position: absolute;
+  background: #05070f;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 0 34px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 229, 255, 0.18);
+}
+
+.screen-overlay.boot {
+  animation: crt-on 0.55s steps(5);
+}
+
+@keyframes crt-on {
+  0% { filter: brightness(0); }
+  45% { filter: brightness(1.8); }
+  100% { filter: brightness(1); }
+}
+
+.scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: repeating-linear-gradient(transparent 0 2px, rgba(0, 0, 0, 0.22) 2px 4px);
+}
+
+.screen {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  padding: 18px 20px;
+}
+
+.screen-scroll {
+  justify-content: flex-start;
+  padding-top: 20px;
+  overflow-y: auto;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.screen-title {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 15px;
+  margin: 0;
+  text-align: center;
+  line-height: 1.7;
+}
+
+.screen-sub {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 9px;
+  color: #8892b0;
+  margin: 0;
+  text-align: center;
+  line-height: 1.8;
+}
+
+.screen-sub.tiny { font-size: 7px; }
+.screen-sub.small { font-size: 8px; }
+
+.glow-pink { color: #ff2d95; text-shadow: 0 0 10px #ff2d95; }
+.glow-yellow { color: #ffd60a; text-shadow: 0 0 10px #ffd60a; }
+.glow-green { color: #39ff88; text-shadow: 0 0 10px #39ff88; }
+
+#admin-badge {
+  color: #ffd60a;
+  text-shadow: 0 0 8px rgba(255, 214, 10, 0.7);
+}
+
+.blink { animation: blink 1s steps(2) infinite; }
+
+@keyframes blink {
+  50% { opacity: 0.25; }
+}
+
+.arcade-btn {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 11px;
+  color: #ffffff;
+  background: #ff2d95;
+  border: 3px solid #ffffff;
+  border-radius: 6px;
+  padding: 12px 18px;
+  cursor: pointer;
+  box-shadow: 0 0 16px #ff2d95;
+}
+
+.arcade-btn:hover { background: #ff5cae; }
+.arcade-btn:active { transform: translateY(2px); box-shadow: 0 0 8px #ff2d95; }
+.arcade-btn:disabled { background: #39406b; box-shadow: none; }
+
+#coin {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  animation: coin-pulse 1s steps(2) infinite;
+}
+
+#coin-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+@keyframes coin-pulse {
+  50% { filter: drop-shadow(0 0 18px #ffd60a); }
+}
+
+#coin.fly {
+  animation: none;
+  transition: transform 0.55s ease-in, opacity 0.55s ease-in;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.tab-btn {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 9px;
+  color: #8892b0;
+  background: transparent;
+  border: 2px solid #39406b;
+  border-radius: 6px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  color: #0b0f1e;
+  background: #00e5ff;
+  border-color: #00e5ff;
+  box-shadow: 0 0 12px #00e5ff;
+}
+
+.auth-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-form label {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 8px;
+  color: #00e5ff;
+  margin: 12px 0 5px;
+}
+
+.auth-form input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #0b0f1e;
+  color: #e6e9f5;
+  border: 2px solid #39406b;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #39ff88;
+  box-shadow: 0 0 12px rgba(57, 255, 136, 0.4);
+}
+
+.auth-form .arcade-btn {
+  margin-top: 16px;
+  font-size: 10px;
+}
+
+.auth-message {
+  min-height: 26px;
+  margin: 10px 0 4px;
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 8px;
+  color: #8892b0;
+  text-align: center;
+  line-height: 1.9;
+}
+
+.auth-message.error {
+  color: #ff2d95;
+  text-shadow: 0 0 8px rgba(255, 45, 149, 0.6);
+}
+
+/* Control Room: the admin panel roster. */
+.admin-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  width: 100%;
+}
+
+.panel-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 8px;
+  color: #e6e9f5;
+  padding: 7px 6px;
+  border: 1px solid #232c4f;
+  border-radius: 6px;
+  background: rgba(18, 23, 43, 0.7);
+  margin-bottom: 6px;
+}
+
+.panel-name {
+  flex: 1;
+  word-break: break-all;
+}
+
+.role-badge {
+  padding: 3px 5px;
+  border-radius: 4px;
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+.role-admin {
+  color: #ffd60a;
+  border: 1px solid #ffd60a;
+  text-shadow: 0 0 6px rgba(255, 214, 10, 0.6);
+}
+
+.role-player {
+  color: #00e5ff;
+  border: 1px solid #00e5ff;
+}
+
+.panel-self {
+  color: #8892b0;
+  font-size: 7px;
+}
+
+.role-btn {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 7px;
+  color: #0b0f1e;
+  background: #39ff88;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 7px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.role-btn:hover { filter: brightness(1.2); box-shadow: 0 0 10px rgba(57, 255, 136, 0.6); }
+.role-btn:active { transform: translateY(1px); }
+
+#admin-count {
+  color: #39ff88;
+}
+
+#admin-message {
+  color: #ff2d95;
+  min-height: 14px;
+}
+
+/* Clickable hit zones on the cabinet art */
+.deck-btn {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.deck-btn::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: transparent;
+  transition: box-shadow 0.15s ease;
+}
+
+.deck-b:hover::after, .deck-b:active::after {
+  background: #2a6bff;
+  box-shadow: 0 0 16px 4px rgba(42, 107, 255, 0.8);
+}
+
+.deck-c:hover::after, .deck-c:active::after {
+  background: #00e5ff;
+  box-shadow: 0 0 16px 4px rgba(0, 229, 255, 0.8);
+}
+
+.deck-p:hover::after, .deck-p:active::after {
+  background: #ff2d95;
+  box-shadow: 0 0 16px 4px rgba(255, 45, 149, 0.8);
+}
+
+.deck-y:hover::after, .deck-y:active::after {
+  background: #ffd60a;
+  box-shadow: 0 0 16px 4px rgba(255, 214, 10, 0.8);
+}
+
+.joystick-btn {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+
+.joystick-btn:hover {
+  transform: rotate(-8deg);
+}
+
+.joystick-btn:active {
+  box-shadow: 0 0 14px 3px rgba(255, 45, 149, 0.7);
+  border-radius: 50%;
+}
+
+/* The stick glows green when the secret code is armed. */
+.joystick-btn.primed {
+  border-radius: 50%;
+  box-shadow: 0 0 22px 4px rgba(57, 255, 136, 0.8);
+  animation: primed-pulse 0.9s steps(2) infinite;
+}
+
+@keyframes primed-pulse {
+  50% { box-shadow: 0 0 30px 8px rgba(57, 255, 136, 0.95); }
+}
+
+.system-check {
+  max-width: 560px;
+  margin: 26px auto 40px;
+  padding: 14px 18px;
+  border: 2px dashed #39406b;
+  border-radius: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.system-title {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 9px;
+  color: #39ff88;
+  margin: 0 0 10px;
+}
+
+.system-check label {
+  color: #8892b0;
+  font-size: 14px;
+}
+
+.system-check input {
+  background: #0b0f1e;
+  color: #e6e9f5;
+  border: 2px solid #39406b;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+.system-check button {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 9px;
+  background: #00e5ff;
+  color: #0b0f1e;
+  border: 2px solid #00e5ff;
+  border-radius: 6px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+#response {
+  color: #8892b0;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+  .arcade-room.zoomed .machine-wrap { transform: scale(1.6); }
+  .arcade-room.zoomed.form-view .machine-wrap { transform: scale(1.15); }
+}
