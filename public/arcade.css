@@ -1,4 +1,4 @@
-/* Abner's Arcade - entrance v2 (dark neon, original CSS art only) */
+/* Abner's Arcade v3 - real pixel-art entrance (art drawn in pixels.js) */
 
 body {
   background: #0b0f1e;
@@ -6,152 +6,76 @@ body {
 }
 
 .arcade-room {
-  min-height: 94vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  padding: 34px 16px 12px;
+  padding: 20px 10px;
 }
 
-.arcade-room::before {
-  content: "";
+#room-canvas {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
   pointer-events: none;
-  background:
-    linear-gradient(rgba(0, 229, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 229, 255, 0.05) 1px, transparent 1px);
-  background-size: 32px 32px;
 }
 
-.room-floor {
-  position: absolute;
-  left: -12%;
-  right: -12%;
-  bottom: 0;
-  height: 38%;
-  background: repeating-linear-gradient(90deg, #101830 0 46px, #0b1226 46px 92px);
-  border-top: 3px solid #1d2c52;
-  transform: perspective(320px) rotateX(48deg);
-  transform-origin: bottom center;
-  opacity: 0.9;
-  transition: opacity 0.8s ease;
-}
-
-.arcade-room.zoomed .room-floor {
-  opacity: 0.35;
-}
-
-.poster {
-  position: absolute;
-  top: 16%;
-  width: 74px;
-  height: 108px;
-  border: 3px solid #39406b;
-  border-radius: 6px;
-  background: linear-gradient(180deg, #12172b, #1a2140);
-  box-shadow: 0 0 22px rgba(0, 229, 255, 0.12);
-  transition: opacity 0.6s ease;
-  opacity: 0.9;
-}
-
-.poster::before {
-  content: "";
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
-  height: 14px;
-  border-radius: 4px;
-}
-
-.poster::after {
-  content: "";
-  position: absolute;
-  top: 34px;
-  left: 8px;
-  right: 8px;
-  bottom: 10px;
-  border-radius: 4px;
-  background: repeating-linear-gradient(rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 8px);
-}
-
-.poster-left { left: 7%; }
-.poster-left::before { background: #ff2d95; box-shadow: 0 0 10px #ff2d95; }
-.poster-right { right: 7%; }
-.poster-right::before { background: #39ff88; box-shadow: 0 0 10px #39ff88; }
-.arcade-room.zoomed .poster { opacity: 0; }
-
-.machine {
-  width: 360px;
-  max-width: 94vw;
+.machine-wrap {
   position: relative;
   z-index: 2;
-  background: linear-gradient(180deg, #151b31, #10152a);
-  border: 4px solid #00e5ff;
-  border-radius: 16px 16px 10px 10px;
-  padding: 12px 14px 14px;
-  box-shadow: 0 0 34px rgba(0, 229, 255, 0.3), 0 18px 40px rgba(0, 0, 0, 0.55);
+  width: 396px;
+  max-width: 94vw;
   transition: transform 1.1s cubic-bezier(0.22, 0.9, 0.35, 1);
 }
 
-/* Two-stage zoom: dramatic for INSERT COIN, comfortable for the forms. */
-.arcade-room.zoomed .machine { transform: scale(2.05); }
-.arcade-room.zoomed.form-view .machine { transform: scale(1.35); }
-.arcade-room.zoomed.skip-anim .machine { transition: none; }
+/* Two-stage zoom: dramatic for the coin, comfortable for the forms. */
+.arcade-room.zoomed .machine-wrap { transform: scale(2.05); }
+.arcade-room.zoomed.form-view .machine-wrap { transform: scale(1.38); }
+.arcade-room.zoomed.skip-anim .machine-wrap { transition: none; }
 
-.bulbs {
-  height: 10px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  background: repeating-linear-gradient(90deg, #ffd60a 0 10px, #3a2c05 10px 26px);
-  box-shadow: 0 0 12px rgba(255, 214, 10, 0.55);
-  animation: bulbs 0.9s steps(2) infinite;
+#machine-canvas {
+  display: block;
+  width: 100%;
+  image-rendering: pixelated;
 }
 
-@keyframes bulbs {
-  50% { box-shadow: 0 0 22px rgba(255, 214, 10, 0.9); }
-}
-
-.machine-marquee {
+/* Overlays are positioned by arcade.js using percentages of the wrap,
+   so they always sit exactly on the pixel art, at any screen size. */
+.marquee-overlay {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: "Press Start 2P", "Courier New", monospace;
-  text-align: center;
+  font-size: 13px;
   color: #ffffff;
-  text-shadow: 0 0 6px #ff2d95, 0 0 14px #ff2d95;
-  background: linear-gradient(180deg, #2a0f22, #12172b);
-  border: 2px solid #ff2d95;
-  border-radius: 8px;
-  padding: 10px 6px;
-  font-size: 14px;
-  margin-bottom: 10px;
+  text-shadow: 0 0 6px #ffffff, 0 0 14px #ff2d95, 0 0 22px #ff2d95;
+  text-align: center;
+  padding: 0 4px;
+  box-sizing: border-box;
 }
 
-.screen-bezel {
-  background: #0a0e1c;
-  border: 3px solid #232c4f;
-  border-radius: 10px;
-  padding: 10px;
-}
-
-.machine-screen {
-  position: relative;
-  background: radial-gradient(circle at 50% 40%, #0b1226, #05070f 75%);
-  border: 3px solid #39406b;
-  border-radius: 8px;
-  height: 400px;
+.screen-overlay {
+  position: absolute;
+  background: #05070f;
+  border-radius: 6px;
   overflow: hidden;
+  box-shadow: inset 0 0 34px rgba(0, 0, 0, 0.85);
 }
 
-.machine-screen.boot {
+.screen-overlay.boot {
   animation: crt-on 0.55s steps(5);
 }
 
 @keyframes crt-on {
   0% { filter: brightness(0); }
-  45% { filter: brightness(1.7); }
+  45% { filter: brightness(1.8); }
   100% { filter: brightness(1); }
 }
 
@@ -173,12 +97,12 @@ body {
   align-items: center;
   justify-content: center;
   gap: 13px;
-  padding: 20px 22px;
+  padding: 18px 20px;
 }
 
 .screen-scroll {
   justify-content: flex-start;
-  padding-top: 24px;
+  padding-top: 20px;
   overflow-y: auto;
 }
 
@@ -233,31 +157,30 @@ body {
 .arcade-btn:disabled { background: #39406b; box-shadow: none; }
 
 #coin {
-  width: 54px;
-  height: 54px;
+  position: relative;
+  width: 56px;
+  height: 56px;
   border: none;
+  background: transparent;
   cursor: pointer;
-  background: #ffd60a;
-  border-radius: 8px;
-  clip-path: polygon(
-    30% 0%, 70% 0%, 100% 30%, 100% 70%,
-    70% 100%, 30% 100%, 0% 70%, 0% 30%
-  );
-  box-shadow: inset 0 0 0 5px #e6ac00, inset 0 0 0 9px #ffd60a, 0 0 16px #ffd60a;
-  animation: coin-glow 1s steps(2) infinite;
+  padding: 0;
+  animation: coin-pulse 1s steps(2) infinite;
 }
 
-@keyframes coin-glow {
-  50% { box-shadow: inset 0 0 0 5px #e6ac00, inset 0 0 0 9px #ffd60a, 0 0 32px #ffd60a; }
+#coin-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
 }
 
-#coin.dropped {
-  animation: coin-drop 0.6s ease-in forwards;
-  pointer-events: none;
+@keyframes coin-pulse {
+  50% { filter: drop-shadow(0 0 18px #ffd60a); }
 }
 
-@keyframes coin-drop {
-  to { transform: translateY(160px) scale(0.35); opacity: 0; }
+#coin.fly {
+  animation: none;
+  transition: transform 0.55s ease-in, opacity 0.55s ease-in;
 }
 
 .auth-tabs {
@@ -334,133 +257,62 @@ body {
   text-shadow: 0 0 8px rgba(255, 45, 149, 0.6);
 }
 
-.control-deck {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: linear-gradient(180deg, #1a2140, #131936);
-  border: 2px solid #39406b;
-  border-radius: 8px;
-  padding: 12px 14px;
-  margin-top: 10px;
-}
-
-.deck-left, .deck-mid, .deck-right {
-  display: flex;
-  align-items: center;
-}
-
-.deck-mid {
-  flex-direction: column;
-  gap: 8px;
-}
-
-.deck-right {
-  flex-direction: column;
-  gap: 4px;
-}
-
-.deck-label {
+.admin-list {
   font-family: "Press Start 2P", "Courier New", monospace;
   font-size: 8px;
-  color: #ffd60a;
-  text-shadow: 0 0 8px rgba(255, 214, 10, 0.5);
+  color: #39ff88;
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  width: 100%;
+  line-height: 2.2;
+  text-align: left;
+  word-break: break-all;
 }
 
-.deck-label.cyan { color: #00e5ff; }
-
-.joystick {
-  width: 30px;
-  height: 30px;
-  position: relative;
-  background: #0b0f1e;
-  border-radius: 50%;
-  border: 3px solid #39406b;
-}
-
-.stick {
+/* Clickable hit zones on the cabinet art */
+.deck-btn {
   position: absolute;
-  left: 50%;
-  bottom: 80%;
-  transform: translateX(-50%);
-  width: 8px;
-  height: 22px;
-  background: #ff2d95;
-  border-radius: 4px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
 }
 
-.stick::after {
+.deck-btn::after {
   content: "";
   position: absolute;
-  top: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 18px;
-  height: 18px;
+  inset: 7px;
   border-radius: 50%;
-  background: #ffd60a;
-  box-shadow: 0 0 10px #ffd60a;
+  background: transparent;
+  transition: box-shadow 0.15s ease;
 }
 
-.panel-buttons {
-  display: flex;
-  gap: 12px;
+.deck-btn:active::after {
+  box-shadow: 0 0 16px 4px;
 }
 
-.pbtn {
-  width: 16px;
-  height: 16px;
+.deck-p:active::after { background: #ff2d95; }
+.deck-y:active::after { background: #ffd60a; }
+.deck-c:active::after { background: #00e5ff; }
+
+.joystick-btn {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border: none;
   border-radius: 50%;
-  border: 2px solid #0b0f1e;
-  display: inline-block;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
 }
 
-.pbtn.pink { background: #ff2d95; box-shadow: 0 0 8px #ff2d95; }
-.pbtn.yellow { background: #ffd60a; box-shadow: 0 0 8px #ffd60a; }
-.pbtn.cyan { background: #00e5ff; box-shadow: 0 0 8px #00e5ff; }
-
-.coin-door {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  background: #0d1326;
-  border: 2px solid #39406b;
-  border-radius: 8px;
-  margin-top: 10px;
-  padding: 8px;
-}
-
-.coin-slot {
-  width: 10px;
-  height: 28px;
-  background: #05070f;
-  border: 2px solid #ffd60a;
-  border-radius: 4px;
-}
-
-.coin-return {
-  width: 26px;
-  height: 20px;
-  background: #05070f;
-  border: 2px solid #39406b;
-  border-radius: 10px;
-}
-
-.machine-feet {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 26px;
-  margin-top: 10px;
-}
-
-.machine-feet::before, .machine-feet::after {
-  content: "";
-  width: 52px;
-  height: 10px;
-  background: #0d1326;
-  border-radius: 4px;
-  border: 2px solid #232c4f;
+.joystick-btn:active {
+  box-shadow: 0 0 14px 3px rgba(255, 45, 149, 0.7);
+  border-radius: 50%;
 }
 
 .system-check {
@@ -469,6 +321,8 @@ body {
   padding: 14px 18px;
   border: 2px dashed #39406b;
   border-radius: 10px;
+  position: relative;
+  z-index: 2;
 }
 
 .system-title {
@@ -511,8 +365,6 @@ body {
 }
 
 @media (max-width: 640px) {
-  .arcade-room.zoomed .machine { transform: scale(1.55); }
-  .arcade-room.zoomed.form-view .machine { transform: scale(1.12); }
-  .poster { display: none; }
-  .machine-screen { height: 430px; }
+  .arcade-room.zoomed .machine-wrap { transform: scale(1.6); }
+  .arcade-room.zoomed.form-view .machine-wrap { transform: scale(1.15); }
 }
