@@ -1,29 +1,38 @@
-// Tiny pixel-art engine: sprites are drawn pixel by pixel with code,
-// the same way real 8-bit game graphics were made. No image files at all.
+// Abner's Arcade pixel-art engine v6 - the full 80s arcade experience.
+// Sprites are drawn pixel by pixel with code, the same way real 8-bit
+// game graphics were made. No image files at all.
 
 const PALETTE = {
   ".": null,          // transparent
-  k: "#05070f",      // near black (screen / slots)
+  k: "#05070f",      // near black (screens / slots)
   K: "#12172b",      // dark navy (cabinet body)
   S: "#232c4f",      // steel
   s: "#39406b",      // light steel
   d: "#0d1326",      // room dark
   c: "#00e5ff",      // neon cyan
   p: "#ff2d95",      // neon pink
+  m: "#ff71ce",      // light pink (shine)
   y: "#ffd60a",      // gold / yellow
   g: "#39ff88",      // neon green
   w: "#ffffff",      // white
-  x: "#9fe9ff",      // pale cyan (star shine)
+  x: "#9fe9ff",      // pale cyan (shine)
   o: "#b8860b",      // dark gold (coin edge / trim)
   r: "#8f1043",      // deep red (marquee frame)
   B: "#2a6bff",      // electric blue (deck button)
+  R: "#ff2222",      // bright red (joystick ball)
+  O: "#ff6b1a",      // orange (flames / carpet)
+  V: "#7b2ff7",      // violet (side art / kick panel)
+  u: "#4b1178",      // deep violet (cabinet crown)
   l: "#56608f",      // chrome highlight
-  F: "#1d2547",      // floor tile (light)
-  f: "#101628",      // floor tile (dark)
-  E: "#3b4a80",      // floor tile edge
+  F: "#1d2547",      // spare floor tone (kept for compatibility)
+  f: "#101628",      // spare floor tone
+  E: "#3b4a80",      // spare floor tone
   P: "#4d0f31",      // pink glow shadow
   C: "#0b4a55",      // cyan glow shadow
   M: "#1c1030",      // purple wall shade
+  A: "#241a4f",      // arcade carpet tile (light)
+  a: "#12082a",      // arcade carpet tile (dark)
+  e: "#3a2a6b",      // carpet tile edge
 };
 
 function makeGrid(width, height) {
@@ -85,52 +94,68 @@ function addHalo(g, x, y, w, h, ch) {
   }
 }
 
-// The arcade machine: a 44x68 sprite built from code rectangles.
+// The hero arcade machine: a 44x68 sprite built from code rectangles.
 // meta records where the screen, buttons, joystick and coin slot are,
 // so the page can place real clickable elements on top of the art.
 function buildMachine() {
   const g = makeGrid(44, 68);
 
-  // Cabinet body.
+  // Cabinet body: deep violet crown, navy below.
   g.rect(4, 0, 36, 64, "K");
+  g.rect(4, 0, 36, 14, "u");
   g.rect(4, 0, 36, 1, "l");    // top highlight
   g.rect(4, 63, 36, 1, "s");   // bottom edge
   g.rect(4, 0, 1, 64, "S");    // left edge
   g.rect(39, 0, 1, 64, "S");   // right edge
 
-  // Neon tubes running down both side edges.
+  // T-molding: a solid neon tube down each side, with small gaps.
   for (let y = 1; y < 63; y++) {
-    const seg = Math.floor(y / 5) % 4;
-    g.set(4, y, seg === 0 ? "c" : seg === 2 ? "p" : "S");
-    g.set(39, y, seg === 0 ? "p" : seg === 2 ? "c" : "S");
+    if (y % 5 !== 4) {
+      g.set(4, y, "c");
+      g.set(39, y, "p");
+    }
   }
 
-  // Bulb strip under the roof.
+  // Side art: little flames licking up the outer columns.
+  for (let y = 3; y < 60; y++) {
+    const f = (y * 7) % 11;
+    if (f < 3) g.set(5, y, f === 0 ? "O" : "y");
+    if (f === 4 || f === 5) g.set(38, y, f === 4 ? "y" : "O");
+  }
+
+  // Bulb strip under the roof: carnival colors.
   g.rect(6, 1, 32, 2, "S");
+  const bulbColors = ["y", "c", "p", "g"];
   for (let x = 8; x < 38; x++) {
-    g.set(x, 1, x % 2 === 0 ? "y" : "w");
-    g.set(x, 2, x % 2 === 0 ? "w" : "y");
+    g.set(x, 1, bulbColors[(x - 8) % 4]);
+    g.set(x, 2, (x - 8) % 2 === 0 ? "w" : "s");
   }
 
-  // Marquee: red frame, pink face, shine pixels, gold trim underneath.
+  // Marquee: deep red frame, gold trims, pink face with shine + sparkle.
   g.rect(6, 4, 32, 9, "r");
-  g.rect(7, 5, 30, 7, "p");
-  g.rect(7, 11, 30, 1, "P");
+  g.rect(6, 4, 32, 1, "o");
+  g.rect(6, 12, 32, 1, "o");
+  g.rect(8, 6, 28, 5, "p");
+  g.rect(8, 6, 28, 1, "m");
+  g.rect(8, 10, 28, 1, "P");
   g.set(9, 6, "w");
   g.set(10, 7, "w");
   g.set(11, 8, "w");
   g.rect(6, 13, 32, 1, "o");
 
-  // Screen bezel with a chrome top edge.
+  // Screen bezel: chrome edges + gold corner rivets.
   g.rect(6, 14, 32, 1, "l");
   g.rect(6, 15, 32, 38, "S");
   g.rect(7, 16, 30, 36, "k"); // the screen (the overlay sits here)
-  g.rect(6, 53, 32, 1, "s");
+  g.set(6, 15, "o");
+  g.set(37, 15, "o");
+  g.set(6, 52, "o");
+  g.set(37, 52, "o");
+  g.rect(6, 53, 32, 1, "l");
 
-  // Speaker grille dots.
-  for (let x = 8; x < 38; x += 2) {
-    g.set(x, 54, "s");
-    g.set(x + 1, 54, "d");
+  // Speaker grille: slanted slashes.
+  for (let x = 8; x < 38; x++) {
+    g.set(x, 54, (x + 54) % 4 < 2 ? "s" : "d");
   }
   g.rect(6, 55, 32, 1, "s"); // trim line
 
@@ -139,18 +164,22 @@ function buildMachine() {
   g.rect(6, 57, 32, 4, "S");
   g.rect(7, 57, 30, 4, "d");
 
-  // Joystick: ball with a shine, stem, and base ring.
-  g.rect(11, 56, 2, 2, "p");
-  g.set(11, 56, "w");
-  g.set(12, 58, "k");
+  // Joystick: red ball with a white glint, black shaft, steel gate.
+  g.set(12, 57, "R");
+  g.set(11, 58, "w");
+  g.set(12, 58, "R");
+  g.set(13, 58, "R");
   g.set(12, 59, "k");
+  g.set(10, 60, "s");
   g.set(11, 60, "s");
-  g.set(12, 60, "s");
+  g.set(12, 60, "k");
   g.set(13, 60, "s");
+  g.set(14, 60, "s");
 
-  // Four deck buttons: BLUE, CYAN, PINK, YELLOW.
+  // Four deck buttons: BLUE, CYAN, PINK, YELLOW + glow reflections.
   const buttonXs = [22, 26, 30, 34];
   const buttonColors = ["B", "c", "p", "y"];
+  const buttonGlows = ["C", "C", "P", "o"];
   for (let i = 0; i < buttonXs.length; i++) {
     const bx = buttonXs[i];
     g.set(bx, 57, "s");
@@ -158,18 +187,31 @@ function buildMachine() {
     g.set(bx, 58, buttonColors[i]);
     g.set(bx + 1, 58, "s");
     g.set(bx, 59, "s");
+    g.set(bx, 60, buttonGlows[i]);
   }
 
-  // Front panel: gold coin door with a slot, plus a green power LED.
+  // Front panel: violet kick stripes + gold two-slot coin door.
   g.rect(6, 61, 32, 2, "K");
-  g.rect(17, 61, 10, 2, "o");
-  g.rect(18, 61, 8, 2, "k");
-  g.set(20, 61, "y");
-  g.set(21, 61, "y");
-  g.set(22, 61, "y");
-  g.set(19, 62, "s");
-  g.set(26, 62, "s");
+  for (let x = 6; x < 38; x++) {
+    if (x < 15 || x > 28) {
+      const stripe = (x + 61) % 4;
+      g.set(x, 61, stripe < 2 ? "V" : "u");
+      g.set(x, 62, stripe < 2 ? "u" : "V");
+    }
+  }
+  g.rect(15, 61, 14, 2, "o");
+  g.rect(16, 61, 12, 1, "y");
+  g.rect(16, 62, 12, 1, "o");
+  g.set(19, 61, "w");
+  g.set(24, 61, "w");
+  g.set(19, 62, "k");
+  g.set(24, 62, "k");
+  g.set(21, 62, "k");
+  g.set(22, 62, "k");
+
+  // Power LED + a little red service light.
   g.set(7, 62, "g");
+  g.set(36, 62, "r");
 
   // Feet.
   g.rect(8, 64, 6, 4, "S");
@@ -242,43 +284,199 @@ const BOLT = [
   "cc...",
 ];
 
-// A distant arcade cabinet standing in the room, screen glowing.
-function farCabinet(g, x, y, marqueeColor) {
+// A classic little space invader, waving from the wall.
+const INVADER = [
+  "..g.....g..",
+  "...g...g...",
+  "..ggggggg..",
+  ".gg.ggg.gg.",
+  "ggggggggggg",
+  "g.ggggggg.g",
+  "g.g.....g.g",
+  "...gg.gg...",
+];
+
+// A distant arcade cabinet standing in the room. Its little screen can
+// play a tiny game: "pong", "invader", or a plain glow.
+function farCabinet(g, x, y, marqueeColor, screenMode) {
   g.rect(x, y, 16, 28, "K");
   g.rect(x, y, 16, 1, "S");
   g.rect(x, y + 27, 16, 1, "k");
   g.rect(x + 1, y + 2, 14, 3, marqueeColor);
+  g.set(x + 1, y + 2, "w");
+  g.set(x + 14, y + 2, "w");
+  g.set(x + 4, y + 4, "w");
+  g.set(x + 11, y + 4, "w");
+  for (let yy = y + 7; yy < y + 26; yy += 2) {
+    g.set(x, yy, marqueeColor);
+    g.set(x + 15, yy, marqueeColor);
+  }
   g.rect(x + 2, y + 7, 12, 9, "k");
-  g.rect(x + 4, y + 9, 8, 5, "C");
-  g.rect(x + 6, y + 10, 4, 3, "c");
+  if (screenMode === "pong") {
+    g.set(x + 3, y + 9, "w");
+    g.set(x + 3, y + 10, "w");
+    g.set(x + 3, y + 11, "w");
+    g.set(x + 12, y + 11, "w");
+    g.set(x + 12, y + 12, "w");
+    g.set(x + 12, y + 13, "w");
+    g.set(x + 7, y + 11, "x");
+    g.set(x + 8, y + 10, "x");
+  } else if (screenMode === "invader") {
+    g.set(x + 5, y + 9, "g");
+    g.set(x + 7, y + 9, "g");
+    g.set(x + 5, y + 10, "g");
+    g.set(x + 6, y + 10, "g");
+    g.set(x + 7, y + 10, "g");
+    g.set(x + 5, y + 11, "g");
+    g.set(x + 7, y + 11, "g");
+    g.set(x + 4, y + 13, "c");
+    g.set(x + 8, y + 13, "c");
+  } else {
+    g.rect(x + 4, y + 9, 8, 5, "C");
+    g.rect(x + 6, y + 10, 4, 3, "c");
+  }
   g.rect(x + 2, y + 18, 12, 6, "S");
-  g.rect(x + 4, y + 20, 2, 2, "p");
+  g.rect(x + 2, y + 19, 12, 4, "d");
+  g.set(x + 4, y + 20, "p");
   g.set(x + 10, y + 20, "y");
 }
 
-// The arcade room background (160x90): ceiling, starfield wall with
-// panel seams, neon signs with glow halos, distant cabinets, and a
-// perspective checkered floor with light spilling onto it.
+// A gold change machine glowing by the right wall.
+function changeMachine(g) {
+  g.rect(150, 40, 8, 17, "S");
+  g.rect(150, 40, 8, 1, "s");
+  g.rect(151, 41, 6, 2, "y");
+  g.set(152, 41, "w");
+  g.rect(151, 44, 6, 8, "k");
+  g.set(152, 46, "o");
+  g.set(155, 46, "o");
+  g.rect(152, 52, 4, 1, "o");
+  g.rect(151, 56, 6, 1, "k");
+}
+
+// Puts a world point on the floor: depth wd goes 0 at the back wall to
+// 1 at the front, and wx is left (-) or right (+) of the middle.
+function setFloorPixel(g, wx, wd, ch) {
+  const x = Math.round(80 + wx * wd);
+  const y = Math.round(54 + 36 * wd);
+  if (y >= 55 && y < 90 && x >= 0 && x < 160) g.set(x, y, ch);
+}
+
+// The legendary arcade carpet: dark violet tiles covered in neon
+// triangles, diamonds, squiggles and dots that shrink into the distance.
+function drawCarpet(g) {
+  g.rect(0, 54, 160, 36, "a");
+
+  // Big checker tiles in perspective.
+  for (let y = 55; y < 90; y++) {
+    const wd = (y - 54) / 36;
+    for (let x = 0; x < 160; x++) {
+      const wx = (x - 80) / wd;
+      const col = Math.floor(wx / 16);
+      const row = Math.floor(wd * 8);
+      if ((col + row) % 2 === 0) g.set(x, y, "A");
+    }
+  }
+
+  // Tile seams, horizontal and vertical.
+  for (let row = 1; row <= 8; row++) {
+    const y = Math.round(54 + 36 * (row / 8));
+    if (y <= 54 || y >= 90) continue;
+    for (let x = 0; x < 160; x++) {
+      if ((x + row) % 2 === 0) g.set(x, y, "e");
+    }
+  }
+  for (const wx of [-64, -48, -32, -16, 0, 16, 32, 48, 64]) {
+    for (let step = 0; step <= 72; step++) {
+      const wd = 0.05 + (step / 72) * 0.92;
+      if (step % 3 === 0) setFloorPixel(g, wx, wd, "e");
+    }
+  }
+
+  // The neon pattern stamped across the tiles.
+  const CARPET_COLORS = ["p", "c", "y", "g", "O"];
+  for (let tx = -64; tx <= 64; tx += 16) {
+    for (let td = 1; td <= 8; td++) {
+      const wd = td / 8;
+      const hash = ((tx + 64) * 7 + td * 13) % 11;
+      const wx = tx + (hash % 3) * 3 - 3;
+      const color = CARPET_COLORS[hash % 5];
+      const kind = hash % 5;
+      if (kind === 0) {
+        // Triangle pointing at the back wall.
+        for (let i = 0; i < 4; i++) {
+          for (let j = -i; j <= i; j++) {
+            setFloorPixel(g, wx + j, wd + i * 0.02, color);
+          }
+        }
+      } else if (kind === 1) {
+        // Triangle pointing at the player.
+        for (let i = 0; i < 4; i++) {
+          for (let j = -(3 - i); j <= 3 - i; j++) {
+            setFloorPixel(g, wx + j, wd + i * 0.02, color);
+          }
+        }
+      } else if (kind === 2) {
+        // Diamond.
+        const rows = [[0], [-1, 1], [-2, 2], [-2, 2], [-1, 1], [0]];
+        for (let i = 0; i < rows.length; i++) {
+          for (const j of rows[i]) {
+            setFloorPixel(g, wx + j, wd + i * 0.016, color);
+          }
+        }
+      } else if (kind === 3) {
+        // A wavy squiggle line.
+        for (let i = 0; i < 6; i++) {
+          setFloorPixel(g, wx - 2 + i, wd + (i % 2 === 0 ? 0.012 : 0.048), color);
+        }
+      } else {
+        // A bright dot.
+        setFloorPixel(g, wx, wd + 0.01, "w");
+        setFloorPixel(g, wx, wd + 0.035, color);
+      }
+    }
+  }
+}
+
+// The arcade room background (160x90): star wall, hanging neon tubes
+// with light cones, little green invaders marching across the wall,
+// distant cabinets playing tiny games, a change machine, neon signs
+// with glow halos, and the classic neon-pattern arcade carpet.
 function buildRoom() {
   const g = makeGrid(160, 90);
   g.rect(0, 0, 160, 90, "d");
 
-  // Ceiling band with little lights.
+  // Ceiling band with track lights.
   g.rect(0, 0, 160, 5, "k");
   for (let x = 2; x < 160; x += 9) {
     g.set(x, 5, "S");
     g.set(x + 1, 6, "s");
   }
 
+  // Hanging fluorescent tubes, each with a soft cone of light.
+  for (const tx of [32, 128]) {
+    g.rect(tx - 8, 2, 16, 1, "s");
+    g.rect(tx - 7, 3, 14, 1, "x");
+    g.set(tx - 7, 3, "w");
+    g.set(tx + 6, 3, "w");
+    for (let yy = 5; yy < 30; yy++) {
+      const hw = 4 + Math.floor((yy - 4) * 0.55);
+      for (let xx = tx - hw; xx <= tx + hw; xx++) {
+        if ((xx + yy * 3) % 7 === 0) g.set(xx, yy, "x");
+        else if ((xx + yy) % 5 === 0) g.set(xx, yy, "M");
+      }
+    }
+  }
+
   // Wall panel seams.
   for (let x = 20; x < 160; x += 44) g.rect(x, 6, 1, 48, "M");
 
-  // Wall texture + tiny stars.
+  // Wall texture + stars in four colors.
+  const starColors = ["w", "x", "m", "y"];
   for (let y = 6; y < 54; y++) {
     for (let x = 0; x < 160; x++) {
       const n = (x * 31 + y * 17) % 53;
-      if (n === 0) g.set(x, y, "w");
-      else if (n === 1) g.set(x, y, "x");
+      if (n === 0) g.set(x, y, starColors[(x + y) % 4]);
       else if ((x * 7 + y * 13) % 29 === 0) g.set(x, y, "K");
     }
   }
@@ -290,8 +488,8 @@ function buildRoom() {
     }
   }
 
-  // A few bright 4-point sparkles.
-  for (let i = 0; i < 12; i++) {
+  // Bright 4-point sparkles.
+  for (let i = 0; i < 14; i++) {
     const sx = ((i * 37 + 13) % 150) + 4;
     const sy = ((i * 23 + 7) % 38) + 8;
     g.set(sx, sy, "w");
@@ -303,23 +501,10 @@ function buildRoom() {
     }
   }
 
-  // Perspective checkered floor: tiles get smaller toward the horizon.
-  g.rect(0, 54, 160, 1, "K");
-  for (let y = 55; y < 90; y++) {
-    const t = (y - 54) / 36;
-    const cw = 3 + 27 * t * t;
-    const band = Math.floor(t * t * 8);
-    for (let x = 0; x < 160; x++) {
-      const col = Math.floor(x / cw);
-      const checker = (col + band) % 2 === 0;
-      let ch = checker ? "F" : "f";
-      if (t < 0.45) ch = checker ? "f" : "d";
-      if (t > 0.15 && x - col * cw < 0.9) ch = "E";
-      g.set(x, y, ch);
-    }
-  }
+  // The famous arcade carpet.
+  drawCarpet(g);
 
-  // Neon light from the signs spilling onto the floor.
+  // Neon light from the signs spilling onto the carpet.
   for (let y = 58; y < 68; y++) {
     for (let x = 6; x < 46; x++) {
       if ((x + y) % 2 === 0 && (x * 7 + y * 5) % 13 < 6) g.set(x, y, "P");
@@ -331,9 +516,18 @@ function buildRoom() {
     }
   }
 
-  // Distant cabinets standing on the floor, left and right.
-  farCabinet(g, 8, 30, "p");
-  farCabinet(g, 132, 32, "c");
+  // A soft shadow where the hero machine stands.
+  for (let y = 74; y <= 86; y++) {
+    const half = Math.round(26 * (1 - Math.abs(y - 80) / 7) + 4);
+    for (let x = 80 - half; x <= 80 + half; x++) {
+      if ((x + y) % 2 === 0) g.set(x, y, "k");
+    }
+  }
+
+  // Distant cabinets playing little games, and the change machine.
+  farCabinet(g, 8, 30, "p", "pong");
+  farCabinet(g, 132, 32, "c", "invader");
+  changeMachine(g);
 
   // Pink star sign with a glow halo.
   addHalo(g, 14, 10, 16, 20, "P");
@@ -347,6 +541,12 @@ function buildRoom() {
   g.rect(128, 12, 18, 20, "c");
   g.rect(129, 13, 16, 18, "k");
   stamp(g, BOLT, 134, 17);
+
+  // Little green invaders marching across the wall.
+  stamp(g, INVADER, 34, 20);
+  stamp(g, INVADER, 45, 11);
+  stamp(g, INVADER, 108, 9);
+  stamp(g, INVADER, 117, 18);
 
   return g;
 }

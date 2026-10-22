@@ -1,4 +1,4 @@
-/* Abner's Arcade v4 - pixel-art entrance, Control Room panel, glow everywhere */
+/* Abner's Arcade v5/v6 - pixel-art entrance, Control Room panel, access log, big 80s art */
 
 body {
   background: #0b0f1e;
@@ -46,8 +46,8 @@ body {
 }
 
 /* Two-stage zoom: dramatic for the coin, comfortable for the forms. */
-.arcade-room.zoomed .machine-wrap { transform: scale(2.05); }
-.arcade-room.zoomed.form-view .machine-wrap { transform: scale(1.38); }
+.arcade-room.zoomed .machine-wrap { transform: scale(1.75); }
+.arcade-room.zoomed.form-view .machine-wrap { transform: scale(1.2); }
 .arcade-room.zoomed.skip-anim .machine-wrap { transition: none; }
 
 #machine-canvas {
@@ -482,7 +482,51 @@ body {
   margin-top: 10px;
 }
 
+
+/* Control Room: the recent access attempts log. */
+.log-title {
+  color: #00e5ff;
+  margin: 8px 0 0;
+}
+
+.log-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 7px;
+  color: #e6e9f5;
+  padding: 6px;
+  border: 1px solid #232c4f;
+  border-radius: 6px;
+  background: rgba(18, 23, 43, 0.7);
+  margin-bottom: 5px;
+}
+
+.log-who {
+  flex: 1;
+  word-break: break-all;
+}
+
+.log-what {
+  color: #8892b0;
+}
+
+.log-status {
+  white-space: nowrap;
+}
+
+.log-ok {
+  color: #39ff88;
+}
+
+.log-no {
+  color: #ff2d95;
+}
+
 @media (max-width: 640px) {
-  .arcade-room.zoomed .machine-wrap { transform: scale(1.6); }
-  .arcade-room.zoomed.form-view .machine-wrap { transform: scale(1.15); }
+  .arcade-room.zoomed .machine-wrap { transform: scale(1.35); }
+  .arcade-room.zoomed.form-view .machine-wrap { transform: scale(1.05); }
 }
