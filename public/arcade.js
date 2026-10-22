@@ -1,5 +1,5 @@
-// Abner's Arcade entrance: zoom-in, INSERT COIN, then login/register on the machine screen.
-// This is all visual - the auth API calls stay exactly the same (auth.js handles the forms).
+// Abner's Arcade entrance v2: two-stage zoom, CRT boot flicker, coin, then forms on the screen.
+// All visual - the auth API calls stay exactly the same (auth.js handles the forms).
 
 async function fetchPlayer() {
   try {
@@ -34,6 +34,7 @@ function ding() {
 
 document.addEventListener("DOMContentLoaded", () => {
   const room = document.getElementById("arcade-room");
+  const machineScreen = document.getElementById("machine-screen");
   const screens = {
     idle: document.getElementById("screen-idle"),
     coin: document.getElementById("screen-coin"),
@@ -46,25 +47,36 @@ document.addEventListener("DOMContentLoaded", () => {
     screens[name].classList.remove("hidden");
   }
 
-  // Logged in already? Skip straight to the welcome screen.
+  function crtBoot() {
+    machineScreen.classList.remove("boot");
+    void machineScreen.offsetWidth;
+    machineScreen.classList.add("boot");
+  }
+
+  // Logged in already? Skip straight to the welcome screen (comfortable zoom).
   fetchPlayer().then((player) => {
     if (player) {
-      room.classList.add("zoomed", "skip-anim");
+      room.classList.add("zoomed", "form-view", "skip-anim");
       document.getElementById("welcome-title").textContent = "HI, " + player.username.toUpperCase() + "!";
       show("in");
     }
   });
 
   document.getElementById("enter-btn").addEventListener("click", () => {
-    room.classList.add("zoomed");
     room.classList.remove("skip-anim");
+    room.classList.add("zoomed");
+    crtBoot();
     show("coin");
   });
 
   document.getElementById("coin").addEventListener("click", (event) => {
     ding();
     event.currentTarget.classList.add("dropped");
-    setTimeout(() => show("auth"), 620);
+    setTimeout(() => {
+      // Zoom back out a little so the login/register forms are easy to read.
+      room.classList.add("form-view");
+      show("auth");
+    }, 620);
   });
 
   document.querySelectorAll(".tab-btn").forEach((tab) => {

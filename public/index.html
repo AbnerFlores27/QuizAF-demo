@@ -15,71 +15,91 @@
   </head>
   <body>
     <div class="arcade-room" id="arcade-room">
+      <div class="room-floor"></div>
+      <div class="poster poster-left"></div>
+      <div class="poster poster-right"></div>
+
       <div class="machine" id="machine">
+        <div class="bulbs"></div>
         <div class="machine-marquee">ABNER'S ARCADE</div>
-        <div class="machine-screen">
-          <div class="scanlines"></div>
 
-          <section class="screen" id="screen-idle">
-            <p class="screen-title glow-pink">ABNER'S ARCADE</p>
-            <p class="screen-sub">HIGH SCORE QUIZZES INSIDE</p>
-            <button type="button" class="arcade-btn" id="enter-btn">ENTER</button>
-          </section>
+        <div class="screen-bezel">
+          <div class="machine-screen" id="machine-screen">
+            <div class="scanlines"></div>
 
-          <section class="screen hidden" id="screen-coin">
-            <p class="screen-title glow-yellow blink">INSERT COIN</p>
-            <button type="button" id="coin" aria-label="Insert coin"></button>
-            <p class="screen-sub">CLICK THE COIN</p>
-          </section>
+            <section class="screen" id="screen-idle">
+              <p class="screen-title glow-pink">ABNER'S ARCADE</p>
+              <p class="screen-sub">HIGH SCORE QUIZZES</p>
+              <button type="button" class="arcade-btn" id="enter-btn">ENTER</button>
+              <p class="screen-sub tiny">ONE PLAYER - FREE PLAY</p>
+            </section>
 
-          <section class="screen hidden" id="screen-auth">
-            <div class="auth-tabs">
-              <button type="button" class="tab-btn active" data-tab="login">LOG IN</button>
-              <button type="button" class="tab-btn" data-tab="register">REGISTER</button>
-            </div>
+            <section class="screen hidden" id="screen-coin">
+              <p class="screen-title glow-yellow blink">INSERT COIN</p>
+              <button type="button" id="coin" aria-label="Insert coin"></button>
+              <p class="screen-sub">CLICK THE COIN</p>
+            </section>
 
-            <form id="login-form" class="auth-form">
-              <label for="identifier">USERNAME OR EMAIL</label>
-              <input id="identifier" name="identifier" type="text" maxlength="255" autocomplete="username" required>
-              <label for="password">PASSWORD</label>
-              <input id="password" name="password" type="password" maxlength="200" autocomplete="current-password" required>
-              <button type="submit" class="arcade-btn">START GAME</button>
-            </form>
+            <section class="screen screen-scroll hidden" id="screen-auth">
+              <div class="auth-tabs">
+                <button type="button" class="tab-btn active" data-tab="login">LOG IN</button>
+                <button type="button" class="tab-btn" data-tab="register">REGISTER</button>
+              </div>
 
-            <form id="register-form" class="auth-form hidden">
-              <label for="username">USERNAME (ON THE SCORE BOARD)</label>
-              <input id="username" name="username" type="text" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" title="3-30 letters, numbers, or underscores" autocomplete="username" required>
-              <label for="email">EMAIL</label>
-              <input id="email" name="email" type="email" maxlength="255" autocomplete="email" required>
-              <label for="reg-password">PASSWORD (8+ CHARACTERS)</label>
-              <input id="reg-password" name="password" type="password" minlength="8" maxlength="200" autocomplete="new-password" required>
-              <label for="confirm_password">CONFIRM PASSWORD</label>
-              <input id="confirm_password" name="confirm_password" type="password" minlength="8" maxlength="200" autocomplete="new-password" required>
-              <button type="submit" class="arcade-btn">CREATE PLAYER</button>
-            </form>
+              <form id="login-form" class="auth-form">
+                <label for="identifier">USERNAME OR EMAIL</label>
+                <input id="identifier" name="identifier" type="text" maxlength="255" autocomplete="username" required>
+                <label for="password">PASSWORD</label>
+                <input id="password" name="password" type="password" maxlength="200" autocomplete="current-password" required>
+                <button type="submit" class="arcade-btn">PRESS START</button>
+              </form>
 
-            <p id="auth-message" class="auth-message" role="alert" aria-live="polite"></p>
-          </section>
+              <form id="register-form" class="auth-form hidden">
+                <label for="username">USERNAME (ON THE SCORE BOARD)</label>
+                <input id="username" name="username" type="text" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" title="3-30 letters, numbers, or underscores" autocomplete="username" required>
+                <label for="email">EMAIL (SAVED TO YOUR ACCOUNT)</label>
+                <input id="email" name="email" type="email" maxlength="255" autocomplete="email" required>
+                <label for="reg-password">PASSWORD (8+ CHARACTERS)</label>
+                <input id="reg-password" name="password" type="password" minlength="8" maxlength="200" autocomplete="new-password" required>
+                <label for="confirm_password">CONFIRM PASSWORD</label>
+                <input id="confirm_password" name="confirm_password" type="password" minlength="8" maxlength="200" autocomplete="new-password" required>
+                <button type="submit" class="arcade-btn">NEW PLAYER</button>
+              </form>
 
-          <section class="screen hidden" id="screen-in">
-            <p class="screen-title glow-green" id="welcome-title">HI, PLAYER!</p>
-            <p class="screen-sub">CREDIT: 1</p>
-            <p class="screen-sub small">5 GAME CABINETS ARRIVE IN PHASE 2</p>
-            <button type="button" class="arcade-btn" id="logout-btn">LOG OUT</button>
-          </section>
-        </div>
+              <p id="auth-message" class="auth-message" role="alert" aria-live="polite"></p>
+            </section>
 
-        <div class="machine-panel">
-          <div class="joystick"><div class="stick"></div></div>
-          <div class="panel-buttons">
-            <span class="pbtn pink"></span>
-            <span class="pbtn yellow"></span>
-            <span class="pbtn cyan"></span>
+            <section class="screen hidden" id="screen-in">
+              <p class="screen-title glow-green" id="welcome-title">HI, PLAYER!</p>
+              <p class="screen-sub">CREDIT: 1</p>
+              <p class="screen-sub small">5 GAME CABINETS ARRIVE IN PHASE 2</p>
+              <button type="button" class="arcade-btn" id="logout-btn">LOG OUT</button>
+            </section>
           </div>
         </div>
-        <div class="coin-slot-row">
-          <div class="coin-slot"></div>
+
+        <div class="control-deck">
+          <div class="deck-left">
+            <div class="joystick"><div class="stick"></div></div>
+          </div>
+          <div class="deck-mid">
+            <span class="deck-label">PLAYER 1</span>
+            <div class="panel-buttons">
+              <span class="pbtn pink"></span>
+              <span class="pbtn yellow"></span>
+              <span class="pbtn cyan"></span>
+            </div>
+          </div>
+          <div class="deck-right">
+            <span class="deck-label cyan">START</span>
+          </div>
         </div>
+
+        <div class="coin-door">
+          <div class="coin-slot"></div>
+          <div class="coin-return"></div>
+        </div>
+        <div class="machine-feet"></div>
       </div>
     </div>
 
