@@ -1,4 +1,4 @@
-/* Abner's Arcade v7 - pixel-art entrance, Control Room + access log, smart zoom, 80s art */
+/* Abner's Arcade v8 - pixel-art entrance, Control Room + access log, smart zoom, 80s art, GAME SELECT menu */
 
 body {
   background: #0b0f1e;
@@ -553,6 +553,68 @@ body {
 
 .deck-btn:focus-visible, .joystick-btn:focus-visible,
 #coin:focus-visible, .tab-btn:focus-visible {
+  outline: 2px solid #00e5ff;
+  outline-offset: 2px;
+}
+
+/* GAME SELECT: the 5 quiz cabinets, styled like a real arcade menu. */
+.cabinet-menu {
+  list-style: none;
+  padding: 0;
+  margin: 2px 0 0;
+  width: 100%;
+}
+
+.cabinet-item {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 8px;
+  color: #e6e9f5;
+  background: rgba(18, 23, 43, 0.85);
+  border: 2px solid #39406b;
+  border-radius: 6px;
+  padding: 9px;
+  cursor: pointer;
+  margin-bottom: 7px;
+  text-align: left;
+}
+
+/* Guard: the starter stylesheet paints buttons blue on hover. */
+.cabinet-item:hover, .cabinet-item:active, .cabinet-item:focus {
+  background: rgba(18, 23, 43, 0.9);
+  outline: none;
+}
+
+.cabinet-glyph {
+  font-size: 8px;
+  padding: 4px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.glyph-blue   { color: #2a6bff; border: 1px solid #2a6bff; }
+.glyph-green  { color: #39ff88; border: 1px solid #39ff88; }
+.glyph-cyan   { color: #00e5ff; border: 1px solid #00e5ff; }
+.glyph-pink   { color: #ff2d95; border: 1px solid #ff2d95; }
+.glyph-yellow { color: #ffd60a; border: 1px solid #ffd60a; }
+
+.cabinet-blue:hover   { border-color: #2a6bff; box-shadow: 0 0 12px rgba(42, 107, 255, 0.55); }
+.cabinet-green:hover  { border-color: #39ff88; box-shadow: 0 0 12px rgba(57, 255, 136, 0.55); }
+.cabinet-cyan:hover   { border-color: #00e5ff; box-shadow: 0 0 12px rgba(0, 229, 255, 0.55); }
+.cabinet-pink:hover   { border-color: #ff2d95; box-shadow: 0 0 12px rgba(255, 45, 149, 0.55); }
+.cabinet-yellow:hover { border-color: #ffd60a; box-shadow: 0 0 12px rgba(255, 214, 10, 0.55); }
+
+.cabinet-blue.selected   { border-color: #2a6bff; box-shadow: 0 0 14px rgba(42, 107, 255, 0.7); }
+.cabinet-green.selected  { border-color: #39ff88; box-shadow: 0 0 14px rgba(57, 255, 136, 0.7); }
+.cabinet-cyan.selected   { border-color: #00e5ff; box-shadow: 0 0 14px rgba(0, 229, 255, 0.7); }
+.cabinet-pink.selected   { border-color: #ff2d95; box-shadow: 0 0 14px rgba(255, 45, 149, 0.7); }
+.cabinet-yellow.selected { border-color: #ffd60a; box-shadow: 0 0 14px rgba(255, 214, 10, 0.7); }
+
+.cabinet-item:focus-visible {
   outline: 2px solid #00e5ff;
   outline-offset: 2px;
 }

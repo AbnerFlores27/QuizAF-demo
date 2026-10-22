@@ -69,11 +69,18 @@
             <p id="auth-message" class="auth-message" role="alert" aria-live="polite"></p>
           </section>
 
-          <section class="screen hidden" id="screen-in">
+          <section class="screen screen-scroll hidden" id="screen-in">
             <p class="screen-title glow-green" id="welcome-title">HI, PLAYER!</p>
             <p class="screen-sub tiny hidden" id="admin-badge">* ADMIN *</p>
-            <p class="screen-sub">CREDIT: 1</p>
-            <p class="screen-sub small">5 GAME CABINETS ARRIVE IN PHASE 2</p>
+            <p class="screen-sub small glow-yellow">CREDIT: 1 - GAME SELECT</p>
+            <ul class="cabinet-menu" id="cabinet-menu">
+              <li><button type="button" class="cabinet-item cabinet-blue" data-tone="262"><span class="cabinet-glyph glyph-blue" aria-hidden="true">01</span>GAMING HISTORY</button></li>
+              <li><button type="button" class="cabinet-item cabinet-green" data-tone="330"><span class="cabinet-glyph glyph-green" aria-hidden="true">02</span>SPORTS</button></li>
+              <li><button type="button" class="cabinet-item cabinet-cyan" data-tone="392"><span class="cabinet-glyph glyph-cyan" aria-hidden="true">03</span>TECH &amp; INTERNET</button></li>
+              <li><button type="button" class="cabinet-item cabinet-pink" data-tone="440"><span class="cabinet-glyph glyph-pink" aria-hidden="true">04</span>MOVIES &amp; TV</button></li>
+              <li><button type="button" class="cabinet-item cabinet-yellow" data-tone="523"><span class="cabinet-glyph glyph-yellow" aria-hidden="true">05</span>MUSIC</button></li>
+            </ul>
+            <p class="screen-sub tiny" id="cabinet-message" role="alert" aria-live="polite"></p>
             <button type="button" class="arcade-btn" id="logout-btn">LOG OUT</button>
           </section>
 

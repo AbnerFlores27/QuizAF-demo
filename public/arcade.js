@@ -1,9 +1,8 @@
-// Abner's Arcade v7: Control Room with the access log, smart zoom that
-// always keeps the whole machine on screen, and control fixes (shared
-// audio voice + clean hover states). The machine art is drawn pixel by
-// pixel in pixels.js. This file places clickable parts on top of the art
-// and runs the show. All the real auth work still happens in auth.js +
-// the server (unchanged).
+// Abner's Arcade v8: logins now STAY logged in (the session cookie works
+// inside Replit's embedded preview - see the server fix), and the machine
+// boots to GAME SELECT: a themed menu with the 5 quiz cabinets. The art is
+// drawn in pixels.js; this file places clickable parts on top of it. The
+// real auth work still happens in auth.js + the server.
 
 const MACHINE = { gridW: 44, gridH: 68, scale: 9 };
 
@@ -224,6 +223,22 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("logout-btn").addEventListener("click", async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.href = "/";
+  });
+
+  // ---- GAME SELECT ----
+  // The 5 quiz cabinets. Phase 2 loads real quizzes into them; for now
+  // picking one lights it up and shows its status, like a cabinet with
+  // its game still on the truck to the arcade.
+  const cabinetMessage = document.getElementById("cabinet-message");
+  document.querySelectorAll(".cabinet-item").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      playTone(Number(btn.dataset.tone) || 440, 0.08);
+      document.querySelectorAll(".cabinet-item").forEach((b) => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      const label = btn.textContent.replace(/[0-9]/g, "").trim();
+      cabinetMessage.textContent = label + ": CABINET OPENS IN PHASE 2";
+      setTimeout(() => playTone(659, 0.06), 90);
+    });
   });
 
   // ---- Secret admin door ----

@@ -35,8 +35,13 @@ app.use(
     store: new PGStore({ pool, tableName: "session" }),
     cookie: {
       httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      // Replit shows the app inside its embedded preview, which counts as a
+      // cross-site context. "lax" cookies get dropped there, so a login
+      // looked successful but never came back - the page asked you to log
+      // in again right away. "none" + secure is the combo that keeps the
+      // login cookie working inside Replit (and everywhere else).
+      sameSite: "none",
+      secure: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // one week
     },
   }),
