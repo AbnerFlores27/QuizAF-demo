@@ -1,5 +1,6 @@
 // Admin-only routes. The server decides who is an admin - never the client.
-// Phase 1 ships the roster plus role switching from the Control Room panel.
+// Phase 1 ships the roster, role switching, and the access log
+// (all served from the Control Room panel).
 const express = require("express");
 const { pool } = require("../db/index");
 const { requireAdmin } = require("../middleware/auth");
@@ -54,6 +55,20 @@ router.put("/users/:id/role", async (request, response) => {
   } catch (error) {
     console.error("Role update failed:", error.message);
     response.status(500).json({ error: "Could not update the role." });
+  }
+});
+
+// The access log: who tried the admin door lately, allowed or denied.
+router.get("/access-log", async (_request, response) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT username, endpoint, allowed, created_at " +
+        "FROM admin_access_log ORDER BY created_at DESC LIMIT 15",
+    );
+    response.json({ log: rows });
+  } catch (error) {
+    console.error("Access log read failed:", error.message);
+    response.status(500).json({ error: "Could not load the access log." });
   }
 });
 
