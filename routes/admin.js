@@ -1,1 +1,1 @@
-__ADMIN_FILE__
+__ADMIN_CONTENT__
