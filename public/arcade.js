@@ -1,26 +1,24 @@
-// Abner's Arcade v5: Control Room panel now shows the access log too.
-// The machine art is drawn pixel by pixel in pixels.js. This file places
-// clickable parts on top of the art and runs the show.
-// All the real auth work still happens in auth.js + the server (unchanged).
+// Abner's Arcade v7: Control Room with the access log, smart zoom that
+// always keeps the whole machine on screen, and control fixes (shared
+// audio voice + clean hover states). The machine art is drawn pixel by
+// pixel in pixels.js. This file places clickable parts on top of the art
+// and runs the show. All the real auth work still happens in auth.js +
+// the server (unchanged).
 
 const MACHINE = { gridW: 44, gridH: 68, scale: 9 };
 
-async function fetchPlayer() {
-  try {
-    const response = await fetch("/api/auth/me");
-    const data = await response.json();
-    return data.user || null;
-  } catch {
-    return null;
-  }
-}
+// One shared audio voice. (Before, every beep built a brand-new one and
+// browsers ran out of voices after a few clicks - the arcade went silent.)
+let audioCtx = null;
 
 function playTone(frequency, duration, type, volume) {
   // Little 8-bit style beeps made with the browser's sound tools - no files.
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
-    const ctx = new AudioContext();
+    if (!audioCtx) audioCtx = new AudioContext();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const ctx = audioCtx;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = type || "square";
@@ -42,6 +40,16 @@ function coinDing() {
 
 function denyBuzz() {
   playTone(110, 0.3, "sawtooth", 0.08);
+}
+
+async function fetchPlayer() {
+  try {
+    const response = await fetch("/api/auth/me");
+    const data = await response.json();
+    return data.user || null;
+  } catch {
+    return null;
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -74,15 +82,44 @@ document.addEventListener("DOMContentLoaded", () => {
   mq.height = pct(m.marquee.h, MACHINE.gridH);
 
   const buttonIds = { b: "btn-b", c: "btn-c", p: "btn-p", y: "btn-y" };
-  m.btns.forEach((btn) => {
-    const el = document.getElementById(buttonIds[btn.key]).style;
-    el.left = "calc(" + pct(btn.x + 0.5, MACHINE.gridW) + " - 17px)";
-    el.top = "calc(" + pct(btn.y + 0.5, MACHINE.gridH) + " - 17px)";
-  });
-
   const stickPos = stickEl.style;
-  stickPos.left = "calc(" + pct(m.stick.x + 0.5, MACHINE.gridW) + " - 22px)";
-  stickPos.top = "calc(" + pct(m.stick.y + 0.5, MACHINE.gridH) + " - 22px)";
+
+  // Size the hit zones to the art and re-place them whenever the window
+  // changes, so the buttons never overlap on small screens.
+  function layoutControls() {
+    const unit = wrap.offsetWidth / MACHINE.gridW;
+    const btnSize = Math.round(unit * 3.8);
+    const stickSize = Math.round(unit * 4.9);
+    m.btns.forEach((btn) => {
+      const el = document.getElementById(buttonIds[btn.key]).style;
+      el.width = btnSize + "px";
+      el.height = btnSize + "px";
+      el.left = "calc(" + pct(btn.x + 0.5, MACHINE.gridW) + " - " + btnSize / 2 + "px)";
+      el.top = "calc(" + pct(btn.y + 0.5, MACHINE.gridH) + " - " + btnSize / 2 + "px)";
+    });
+    stickPos.width = stickSize + "px";
+    stickPos.height = stickSize + "px";
+    stickPos.left = "calc(" + pct(m.stick.x + 0.5, MACHINE.gridW) + " - " + stickSize / 2 + "px)";
+    stickPos.top = "calc(" + pct(m.stick.y + 0.5, MACHINE.gridH) + " - " + stickSize / 2 + "px)";
+  }
+  layoutControls();
+
+  // Smart zoom: the machine grows for the coin moment, but never bigger
+  // than the window, so the WHOLE cabinet (marquee to coin door) stays
+  // on screen at every size.
+  function fitZoom() {
+    const w = wrap.offsetWidth || 396;
+    const h = wrap.offsetHeight || 612;
+    const fit = Math.min((window.innerHeight - 44) / h, (window.innerWidth - 24) / w);
+    room.style.setProperty("--zoom-big", String(Math.max(0.8, Math.min(fit, 1.6))));
+    room.style.setProperty("--zoom-form", String(Math.max(0.8, Math.min(fit * 0.85, 1.25))));
+  }
+  fitZoom();
+
+  window.addEventListener("resize", () => {
+    layoutControls();
+    fitZoom();
+  });
 
   // Screens.
   const screens = {

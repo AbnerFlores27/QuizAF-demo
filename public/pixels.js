@@ -1,4 +1,4 @@
-// Abner's Arcade pixel-art engine v6 - the full 80s arcade experience.
+// Abner's Arcade pixel-art engine v7 - a whole arcade, in 8 bits.
 // Sprites are drawn pixel by pixel with code, the same way real 8-bit
 // game graphics were made. No image files at all.
 
@@ -19,7 +19,7 @@ const PALETTE = {
   o: "#b8860b",      // dark gold (coin edge / trim)
   r: "#8f1043",      // deep red (marquee frame)
   B: "#2a6bff",      // electric blue (deck button)
-  R: "#ff2222",      // bright red (joystick ball)
+  R: "#ff2222",      // bright red (joystick ball / rocket)
   O: "#ff6b1a",      // orange (flames / carpet)
   V: "#7b2ff7",      // violet (side art / kick panel)
   u: "#4b1178",      // deep violet (cabinet crown)
@@ -131,10 +131,16 @@ function buildMachine() {
     g.set(x, 2, (x - 8) % 2 === 0 ? "w" : "s");
   }
 
-  // Marquee: deep red frame, gold trims, pink face with shine + sparkle.
+  // Marquee: deep red frame with a bulb chase all around it.
   g.rect(6, 4, 32, 9, "r");
-  g.rect(6, 4, 32, 1, "o");
-  g.rect(6, 12, 32, 1, "o");
+  for (let x = 6; x < 38; x++) {
+    g.set(x, 4, x % 2 === 0 ? "w" : "o");
+    g.set(x, 12, x % 2 === 0 ? "o" : "w");
+  }
+  for (let y = 5; y < 12; y++) {
+    g.set(6, y, y % 2 === 0 ? "w" : "o");
+    g.set(37, y, y % 2 === 0 ? "o" : "w");
+  }
   g.rect(8, 6, 28, 5, "p");
   g.rect(8, 6, 28, 1, "m");
   g.rect(8, 10, 28, 1, "P");
@@ -341,6 +347,33 @@ function farCabinet(g, x, y, marqueeColor, screenMode) {
   g.set(x + 10, y + 20, "y");
 }
 
+// A framed wall poster: a rocket blasting off, or a racing car.
+function poster(g, x, y, kind) {
+  g.rect(x, y, 10, 14, "S");
+  g.rect(x + 1, y + 1, 8, 12, "k");
+  if (kind === "rocket") {
+    g.set(x + 4, y + 3, "w");
+    g.set(x + 4, y + 4, "R");
+    g.set(x + 5, y + 4, "R");
+    g.set(x + 4, y + 5, "R");
+    g.set(x + 5, y + 5, "R");
+    g.set(x + 4, y + 6, "R");
+    g.set(x + 4, y + 7, "O");
+    g.set(x + 4, y + 8, "y");
+    g.set(x + 2, y + 3, "x");
+    g.set(x + 7, y + 6, "x");
+    g.set(x + 3, y + 10, "x");
+  } else {
+    g.rect(x + 2, y + 8, 6, 2, "B");
+    g.set(x + 3, y + 7, "B");
+    g.set(x + 5, y + 7, "B");
+    g.set(x + 3, y + 10, "k");
+    g.set(x + 6, y + 10, "k");
+    g.set(x + 8, y + 8, "y");
+    g.set(x + 2, y + 3, "x");
+  }
+}
+
 // A gold change machine glowing by the right wall.
 function changeMachine(g) {
   g.rect(150, 40, 8, 17, "S");
@@ -438,16 +471,18 @@ function drawCarpet(g) {
   }
 }
 
-// The arcade room background (160x90): star wall, hanging neon tubes
-// with light cones, little green invaders marching across the wall,
-// distant cabinets playing tiny games, a change machine, neon signs
-// with glow halos, and the classic neon-pattern arcade carpet.
+// The arcade room background (160x90): black ceiling tiles, hanging neon
+// tubes with light cones, a pennant banner, star wall, framed posters,
+// little green invaders marching across the wall, a row of distant
+// cabinets playing tiny games, a change machine, neon signs with glow
+// halos, and the classic neon-pattern arcade carpet.
 function buildRoom() {
   const g = makeGrid(160, 90);
   g.rect(0, 0, 160, 90, "d");
 
-  // Ceiling band with track lights.
+  // Ceiling: black ceiling tiles with track lights along the edge.
   g.rect(0, 0, 160, 5, "k");
+  for (let x = 0; x < 160; x += 16) g.rect(x, 0, 1, 5, "d");
   for (let x = 2; x < 160; x += 9) {
     g.set(x, 5, "S");
     g.set(x + 1, 6, "s");
@@ -466,6 +501,19 @@ function buildRoom() {
         else if ((xx + yy) % 5 === 0) g.set(xx, yy, "M");
       }
     }
+  }
+
+  // Party pennant banner strung across the back wall.
+  for (let x = 0; x < 160; x++) g.set(x, 7, "s");
+  const flagColors = ["p", "y", "c", "g"];
+  for (let x = 3; x < 158; x += 8) {
+    const ch = flagColors[Math.floor(x / 8) % 4];
+    g.set(x, 8, ch);
+    g.set(x + 1, 8, ch);
+    g.set(x + 2, 8, ch);
+    g.set(x, 9, ch);
+    g.set(x + 1, 9, ch);
+    g.set(x, 10, ch);
   }
 
   // Wall panel seams.
@@ -501,6 +549,10 @@ function buildRoom() {
     }
   }
 
+  // Baseboard where the wall meets the carpet.
+  g.rect(0, 52, 160, 1, "S");
+  g.rect(0, 53, 160, 1, "s");
+
   // The famous arcade carpet.
   drawCarpet(g);
 
@@ -516,6 +568,18 @@ function buildRoom() {
     }
   }
 
+  // Glossy reflections: bright sheens right under the neon signs.
+  for (let y = 56; y < 66; y++) {
+    for (let x = 20; x < 26; x++) {
+      if ((x + y) % 2 === 0) g.set(x, y, "m");
+    }
+  }
+  for (let y = 58; y < 68; y++) {
+    for (let x = 133; x < 139; x++) {
+      if ((x + y) % 2 === 0) g.set(x, y, "x");
+    }
+  }
+
   // A soft shadow where the hero machine stands.
   for (let y = 74; y <= 86; y++) {
     const half = Math.round(26 * (1 - Math.abs(y - 80) / 7) + 4);
@@ -524,10 +588,16 @@ function buildRoom() {
     }
   }
 
-  // Distant cabinets playing little games, and the change machine.
-  farCabinet(g, 8, 30, "p", "pong");
-  farCabinet(g, 132, 32, "c", "invader");
+  // A whole row of distant cabinets, plus the change machine.
+  farCabinet(g, 6, 30, "p", "pong");
+  farCabinet(g, 26, 32, "y", "");
+  farCabinet(g, 116, 31, "O", "");
+  farCabinet(g, 134, 32, "c", "invader");
   changeMachine(g);
+
+  // Framed posters on the walls: a rocket and a race car.
+  poster(g, 44, 14, "rocket");
+  poster(g, 104, 16, "car");
 
   // Pink star sign with a glow halo.
   addHalo(g, 14, 10, 16, 20, "P");
@@ -544,8 +614,8 @@ function buildRoom() {
 
   // Little green invaders marching across the wall.
   stamp(g, INVADER, 34, 20);
-  stamp(g, INVADER, 45, 11);
-  stamp(g, INVADER, 108, 9);
+  stamp(g, INVADER, 44, 5);
+  stamp(g, INVADER, 106, 6);
   stamp(g, INVADER, 117, 18);
 
   return g;

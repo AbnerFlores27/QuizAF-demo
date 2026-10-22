@@ -1,4 +1,4 @@
-/* Abner's Arcade v5/v6 - pixel-art entrance, Control Room panel, access log, big 80s art */
+/* Abner's Arcade v7 - pixel-art entrance, Control Room + access log, smart zoom, 80s art */
 
 body {
   background: #0b0f1e;
@@ -45,9 +45,10 @@ body {
   filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.65));
 }
 
-/* Two-stage zoom: dramatic for the coin, comfortable for the forms. */
-.arcade-room.zoomed .machine-wrap { transform: scale(1.75); }
-.arcade-room.zoomed.form-view .machine-wrap { transform: scale(1.2); }
+/* Smart zoom: arcade.js sets --zoom-big / --zoom-form from the window size,
+   so the WHOLE machine always stays on screen. These are only fallbacks. */
+.arcade-room.zoomed .machine-wrap { transform: scale(var(--zoom-big, 1.4)); }
+.arcade-room.zoomed.form-view .machine-wrap { transform: scale(var(--zoom-form, 1.1)); }
 .arcade-room.zoomed.skip-anim .machine-wrap { transition: none; }
 
 #machine-canvas {
@@ -526,7 +527,32 @@ body {
   color: #ff2d95;
 }
 
-@media (max-width: 640px) {
-  .arcade-room.zoomed .machine-wrap { transform: scale(1.35); }
-  .arcade-room.zoomed.form-view .machine-wrap { transform: scale(1.05); }
+/* Fixes: the starter stylesheet paints every button blue on hover and
+   locks page scrolling. Guard the arcade controls and let the page scroll. */
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.deck-btn:hover, .deck-btn:active, .deck-btn:focus,
+.joystick-btn:hover, .joystick-btn:active, .joystick-btn:focus,
+#coin:hover, #coin:active, #coin:focus {
+  background: transparent;
+  outline: none;
+}
+
+.deck-btn:active, .joystick-btn:active {
+  transform: none;
+}
+
+.tab-btn:hover {
+  color: #00e5ff;
+  border-color: #00e5ff;
+  background: transparent;
+}
+
+.deck-btn:focus-visible, .joystick-btn:focus-visible,
+#coin:focus-visible, .tab-btn:focus-visible {
+  outline: 2px solid #00e5ff;
+  outline-offset: 2px;
 }
