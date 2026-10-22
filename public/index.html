@@ -4,24 +4,93 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <title>Abner's Quiz Site</title>
+    <title>Abner's Arcade</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/auth.css">
+    <link rel="stylesheet" href="/arcade.css">
     <script src="/app.js" defer></script>
     <script src="/auth.js" defer></script>
+    <script src="/arcade.js" defer></script>
   </head>
   <body>
-    <main>
-      <nav id="auth-nav" class="auth-nav" aria-label="Account"></nav>
-      <h1>Abner's Quiz Site</h1>
-      <p>This is the working title. We'll change this later.</p>
+    <div class="arcade-room" id="arcade-room">
+      <div class="machine" id="machine">
+        <div class="machine-marquee">ABNER'S ARCADE</div>
+        <div class="machine-screen">
+          <div class="scanlines"></div>
 
+          <section class="screen" id="screen-idle">
+            <p class="screen-title glow-pink">ABNER'S ARCADE</p>
+            <p class="screen-sub">HIGH SCORE QUIZZES INSIDE</p>
+            <button type="button" class="arcade-btn" id="enter-btn">ENTER</button>
+          </section>
+
+          <section class="screen hidden" id="screen-coin">
+            <p class="screen-title glow-yellow blink">INSERT COIN</p>
+            <button type="button" id="coin" aria-label="Insert coin"></button>
+            <p class="screen-sub">CLICK THE COIN</p>
+          </section>
+
+          <section class="screen hidden" id="screen-auth">
+            <div class="auth-tabs">
+              <button type="button" class="tab-btn active" data-tab="login">LOG IN</button>
+              <button type="button" class="tab-btn" data-tab="register">REGISTER</button>
+            </div>
+
+            <form id="login-form" class="auth-form">
+              <label for="identifier">USERNAME OR EMAIL</label>
+              <input id="identifier" name="identifier" type="text" maxlength="255" autocomplete="username" required>
+              <label for="password">PASSWORD</label>
+              <input id="password" name="password" type="password" maxlength="200" autocomplete="current-password" required>
+              <button type="submit" class="arcade-btn">START GAME</button>
+            </form>
+
+            <form id="register-form" class="auth-form hidden">
+              <label for="username">USERNAME (ON THE SCORE BOARD)</label>
+              <input id="username" name="username" type="text" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" title="3-30 letters, numbers, or underscores" autocomplete="username" required>
+              <label for="email">EMAIL</label>
+              <input id="email" name="email" type="email" maxlength="255" autocomplete="email" required>
+              <label for="reg-password">PASSWORD (8+ CHARACTERS)</label>
+              <input id="reg-password" name="password" type="password" minlength="8" maxlength="200" autocomplete="new-password" required>
+              <label for="confirm_password">CONFIRM PASSWORD</label>
+              <input id="confirm_password" name="confirm_password" type="password" minlength="8" maxlength="200" autocomplete="new-password" required>
+              <button type="submit" class="arcade-btn">CREATE PLAYER</button>
+            </form>
+
+            <p id="auth-message" class="auth-message" role="alert" aria-live="polite"></p>
+          </section>
+
+          <section class="screen hidden" id="screen-in">
+            <p class="screen-title glow-green" id="welcome-title">HI, PLAYER!</p>
+            <p class="screen-sub">CREDIT: 1</p>
+            <p class="screen-sub small">5 GAME CABINETS ARRIVE IN PHASE 2</p>
+            <button type="button" class="arcade-btn" id="logout-btn">LOG OUT</button>
+          </section>
+        </div>
+
+        <div class="machine-panel">
+          <div class="joystick"><div class="stick"></div></div>
+          <div class="panel-buttons">
+            <span class="pbtn pink"></span>
+            <span class="pbtn yellow"></span>
+            <span class="pbtn cyan"></span>
+          </div>
+        </div>
+        <div class="coin-slot-row">
+          <div class="coin-slot"></div>
+        </div>
+      </div>
+    </div>
+
+    <section class="system-check">
+      <p class="system-title">SYSTEM CHECK (STARTER DEMO)</p>
       <form id="name-form">
         <label for="name-input">Write a message to save to the database</label>
         <input id="name-input" name="text" type="text" maxlength="200" placeholder="Hello, database!" required />
         <button type="submit">Save to the database</button>
       </form>
       <p id="response"></p>
-    </main>
+    </section>
   </body>
 </html>
