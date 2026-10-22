@@ -1,9 +1,10 @@
 # Quiz question CSV template
 
-This folder holds the standard CSV template for uploading quiz questions in bulk (the admin CSV upload feature arrives in Phase 4).
+This folder holds the quiz question CSVs for bulk question import (the admin CSV upload feature arrives in Phase 4).
 
-## File
+## Files
 
+    templates/questions.csv
     templates/questions-template.csv
 
 ## Columns
@@ -24,6 +25,7 @@ This folder holds the standard CSV template for uploading quiz questions in bulk
 
 ## Notes
 
-- The two example rows in the template are placeholders - delete them and replace them with real questions
+- questions.csv holds the full Phase 1 set: 50 real questions, 10 per topic. quiz_id maps to a topic: 1 = GAMING HISTORY, 2 = SPORTS, 3 = TECH & INTERNET, 4 = MOVIES & TV, 5 = MUSIC. The quizzes themselves get created when the database is seeded in Phase 2
+- The two rows in the template CSV are real sample questions - copy that format when writing more
 - Keep commas out of question text, or wrap the text in double quotes (standard CSV)
 - Invalid rows are reported BEFORE import, so bad data can never silently corrupt the quizzes

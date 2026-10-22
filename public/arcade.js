@@ -1,6 +1,6 @@
-// Abner's Arcade v8: logins now STAY logged in (the session cookie works
-// inside Replit's embedded preview - see the server fix), and the machine
-// boots to GAME SELECT: a themed menu with the 5 quiz cabinets. The art is
+// Abner's Arcade v9: logins STAY logged in, the machine boots to GAME
+// SELECT, and the coin now really flies out of the screen and drops into
+// the machine's coin slot, with a gold glint when it lands. The art is
 // drawn in pixels.js; this file places clickable parts on top of it. The
 // real auth work still happens in auth.js + the server.
 
@@ -120,6 +120,19 @@ document.addEventListener("DOMContentLoaded", () => {
     fitZoom();
   });
 
+  // The coin slot glint: a gold flash right where the flying coin lands.
+  const glint = document.createElement("div");
+  glint.className = "slot-glint";
+  glint.style.left = pct(m.slot.x, MACHINE.gridW);
+  glint.style.top = pct(m.slot.y, MACHINE.gridH);
+  wrap.appendChild(glint);
+
+  function flashSlot() {
+    glint.classList.remove("flash");
+    void glint.offsetWidth;
+    glint.classList.add("flash");
+  }
+
   // Screens.
   const screens = {
     idle: document.getElementById("screen-idle"),
@@ -179,28 +192,54 @@ document.addEventListener("DOMContentLoaded", () => {
     show("coin");
   });
 
-  // INSERT COIN: the coin actually flies into the machine's coin slot.
+  // INSERT COIN: the coin flies out of the screen and drops into the
+  // machine's REAL coin slot. (It used to slide around inside the screen
+  // box, which clips at its edges - so it could never reach the slot.
+  // Now a pixel-art twin of the coin makes the trip instead.)
   document.getElementById("coin").addEventListener("click", (event) => {
     coinDing();
 
     const coin = event.currentTarget;
     const coinRect = coin.getBoundingClientRect();
     const wrapRect = wrap.getBoundingClientRect();
-    const slotX = wrapRect.left + (wrapRect.width * m.slot.x) / MACHINE.gridW;
-    const slotY = wrapRect.top + (wrapRect.height * m.slot.y) / MACHINE.gridH;
-    const dx = slotX - (coinRect.left + coinRect.width / 2);
-    const dy = slotY - (coinRect.top + coinRect.height / 2);
+    const zoom = wrapRect.width / (wrap.offsetWidth || 1);
 
-    coin.classList.add("fly");
-    coin.style.transform = "translate(" + dx + "px, " + dy + "px) scale(0.3)";
+    // Start = center of the on-screen coin. End = the coin slot on the
+    // machine art. Both in un-zoomed machine coordinates.
+    const startX = (coinRect.left + coinRect.width / 2 - wrapRect.left) / zoom;
+    const startY = (coinRect.top + coinRect.height / 2 - wrapRect.top) / zoom;
+    const endX = (wrap.offsetWidth * m.slot.x) / MACHINE.gridW;
+    const endY = (wrap.offsetHeight * m.slot.y) / MACHINE.gridH;
+
+    // Hide the coin button and launch the flying twin from the same spot.
+    coin.style.visibility = "hidden";
+    const flyer = document.createElement("canvas");
+    flyer.className = "coin-fly";
+    renderGrid(flyer, buildCoin(), 7);
+    flyer.style.width = coinRect.width / zoom + "px";
+    flyer.style.height = coinRect.height / zoom + "px";
+    flyer.style.left = startX - coinRect.width / (2 * zoom) + "px";
+    flyer.style.top = startY - coinRect.height / (2 * zoom) + "px";
+    wrap.appendChild(flyer);
+
+    // Let the browser paint the flyer once, THEN start the flight.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        flyer.style.transform =
+          "translate(" + (endX - startX) + "px, " + (endY - startY) +
+          "px) rotate(40deg) scale(0.2)";
+        flyer.style.opacity = "0";
+      });
+    });
 
     setTimeout(() => {
+      flyer.remove();
+      flashSlot();
       room.classList.add("form-view");
       show("auth");
-      // Reset the coin for next time.
-      coin.classList.remove("fly");
-      coin.style.transform = "";
-    }, 600);
+      // Bring the coin button back for the next player.
+      coin.style.visibility = "";
+    }, 700);
   });
 
   // Login / Register tabs.

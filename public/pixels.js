@@ -1,4 +1,4 @@
-// Abner's Arcade pixel-art engine v7 - a whole arcade, in 8 bits.
+// Abner's Arcade pixel-art engine v9 - a whole arcade, in 8 bits.
 // Sprites are drawn pixel by pixel with code, the same way real 8-bit
 // game graphics were made. No image files at all.
 
@@ -347,7 +347,7 @@ function farCabinet(g, x, y, marqueeColor, screenMode) {
   g.set(x + 10, y + 20, "y");
 }
 
-// A framed wall poster: a rocket blasting off, or a racing car.
+// A framed wall poster: a rocket blasting off, a racing car, or a champion's trophy.
 function poster(g, x, y, kind) {
   g.rect(x, y, 10, 14, "S");
   g.rect(x + 1, y + 1, 8, 12, "k");
@@ -363,6 +363,18 @@ function poster(g, x, y, kind) {
     g.set(x + 2, y + 3, "x");
     g.set(x + 7, y + 6, "x");
     g.set(x + 3, y + 10, "x");
+  } else if (kind === "trophy") {
+    g.rect(x + 3, y + 3, 4, 1, "y");
+    g.rect(x + 2, y + 4, 6, 2, "y");
+    g.set(x + 1, y + 4, "o");
+    g.set(x + 1, y + 5, "o");
+    g.set(x + 8, y + 4, "o");
+    g.set(x + 8, y + 5, "o");
+    g.rect(x + 4, y + 6, 2, 3, "o");
+    g.rect(x + 3, y + 9, 4, 1, "y");
+    g.set(x + 3, y + 4, "w");
+    g.set(x + 2, y + 2, "x");
+    g.set(x + 8, y + 3, "x");
   } else {
     g.rect(x + 2, y + 8, 6, 2, "B");
     g.set(x + 3, y + 7, "B");
@@ -385,6 +397,49 @@ function changeMachine(g) {
   g.set(155, 46, "o");
   g.rect(152, 52, 4, 1, "o");
   g.rect(151, 56, 6, 1, "k");
+}
+
+// A wall clock for the back wall. Arcade time is whatever the manager
+// says it is, but the hands still look sharp.
+const CLOCK = [
+  ".sssss.",
+  "sKKKKKs",
+  "sKKwKKs",
+  "sKKwwKs",
+  "sKKKKKs",
+  "sKKKKKs",
+  ".sssss.",
+];
+
+// A snack vending machine glowing on the back wall: a glass window full
+// of colorful treats, a gold coin slot, and the flap where snacks drop.
+function vendingMachine(g, x, y) {
+  g.rect(x, y, 10, 20, "S");
+  for (let xx = x; xx < x + 10; xx++) g.set(xx, y, "s");
+  g.rect(x + 1, y + 1, 8, 9, "k");
+  const snacks = ["O", "p", "c", "g", "y", "B"];
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 4; col++) {
+      g.set(x + 2 + col * 2, y + 2 + row * 3, snacks[(row * 4 + col) % snacks.length]);
+    }
+  }
+  g.rect(x + 1, y + 10, 8, 1, "s");
+  g.rect(x + 1, y + 11, 8, 1, "S");
+  g.rect(x + 2, y + 12, 6, 4, "k");
+  g.rect(x + 3, y + 13, 4, 2, "d");
+  g.set(x + 3, y + 13, "s");
+  g.set(x + 8, y + 17, "y");
+  g.set(x + 8, y + 18, "o");
+  g.rect(x, y + 19, 10, 1, "k");
+}
+
+// A little pool of marquee light on the carpet under a glowing cabinet.
+function glowPool(g, x, y, ch) {
+  for (let i = 0; i < 5; i++) {
+    for (let j = -(4 - i); j <= 4 - i; j++) {
+      if ((x + j + y + i) % 2 === 0) g.set(x + j, y + i, ch);
+    }
+  }
 }
 
 // Puts a world point on the floor: depth wd goes 0 at the back wall to
@@ -474,8 +529,9 @@ function drawCarpet(g) {
 // The arcade room background (160x90): black ceiling tiles, hanging neon
 // tubes with light cones, a pennant banner, star wall, framed posters,
 // little green invaders marching across the wall, a row of distant
-// cabinets playing tiny games, a change machine, neon signs with glow
-// halos, and the classic neon-pattern arcade carpet.
+// cabinets playing tiny games, a change machine, a snack machine, a wall
+// clock, a trophy poster, marquee glow pools on the carpet, neon signs
+// with glow halos, and the classic neon-pattern arcade carpet.
 function buildRoom() {
   const g = makeGrid(160, 90);
   g.rect(0, 0, 160, 90, "d");
@@ -595,9 +651,23 @@ function buildRoom() {
   farCabinet(g, 134, 32, "c", "invader");
   changeMachine(g);
 
-  // Framed posters on the walls: a rocket and a race car.
+  // Framed posters on the walls: a rocket, a race car, and a trophy cup.
   poster(g, 44, 14, "rocket");
   poster(g, 104, 16, "car");
+  poster(g, 98, 32, "trophy");
+
+  // Pools of marquee light on the carpet under the glowing cabinets.
+  glowPool(g, 14, 58, "P");
+  glowPool(g, 34, 60, "o");
+  glowPool(g, 124, 59, "P");
+  glowPool(g, 142, 60, "C");
+  glowPool(g, 154, 57, "o");
+
+  // A wall clock (with a red second hand) and a snack machine by the
+  // cabinets, so the back wall feels like a real arcade corner.
+  stamp(g, CLOCK, 35, 12);
+  g.set(39, 16, "R");
+  vendingMachine(g, 42, 30);
 
   // Pink star sign with a glow halo.
   addHalo(g, 14, 10, 16, 20, "P");
