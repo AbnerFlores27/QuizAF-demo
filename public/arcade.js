@@ -1,4 +1,4 @@
-// Abner's Arcade v4: richer pixel art + the Control Room admin panel.
+// Abner's Arcade v5: Control Room panel now shows the access log too.
 // The machine art is drawn pixel by pixel in pixels.js. This file places
 // clickable parts on top of the art and runs the show.
 // All the real auth work still happens in auth.js + the server (unchanged).
@@ -238,6 +238,37 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function renderAccessLog(entries) {
+    const list = document.getElementById("admin-log");
+    list.innerHTML = "";
+    if (entries.length === 0) {
+      const row = document.createElement("li");
+      row.className = "log-row";
+      row.textContent = "NO ATTEMPTS YET";
+      list.append(row);
+      return;
+    }
+    entries.forEach((entry) => {
+      const row = document.createElement("li");
+      row.className = "log-row";
+
+      const who = document.createElement("span");
+      who.className = "log-who";
+      who.textContent = entry.username || "NOT LOGGED IN";
+
+      const what = document.createElement("span");
+      what.className = "log-what";
+      what.textContent = String(entry.endpoint || "").replace("/api/admin/", "");
+
+      const status = document.createElement("span");
+      status.className = "log-status " + (entry.allowed ? "log-ok" : "log-no");
+      status.textContent = entry.allowed ? "IN" : "DENIED";
+
+      row.append(who, what, status);
+      list.append(row);
+    });
+  }
+
   async function toggleRole(user) {
     const newRole = user.role === "admin" ? "player" : "admin";
     const message = document.getElementById("admin-message");
@@ -275,6 +306,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
       adminUsers = data.users || [];
       renderAdminPanel(adminUsers);
+
+      // Also load the access log (admins only - the server checks again).
+      const logResponse = await fetch("/api/admin/access-log");
+      if (logResponse.ok) {
+        const logData = await logResponse.json();
+        renderAccessLog(logData.log || []);
+      } else {
+        renderAccessLog([]);
+      }
+
       playTone(784, 0.1);
       setTimeout(() => playTone(1046, 0.2), 110);
       show("admin");
