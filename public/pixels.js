@@ -1,4 +1,4 @@
-// Abner's Arcade pixel-art engine v9 - a whole arcade, in 8 bits.
+// Abner's Arcade pixel-art engine v10 - a whole arcade, in 8 bits.
 // Sprites are drawn pixel by pixel with code, the same way real 8-bit
 // game graphics were made. No image files at all.
 
@@ -33,6 +33,9 @@ const PALETTE = {
   A: "#241a4f",      // arcade carpet tile (light)
   a: "#12082a",      // arcade carpet tile (dark)
   e: "#3a2a6b",      // carpet tile edge
+  N: "#f0b184",      // visitor skin
+  T: "#a76a3f",      // visitor skin, deep tone
+  G: "#0f5c33",      // green glow shadow (carpet light pools)
 };
 
 function makeGrid(width, height) {
@@ -442,6 +445,64 @@ function glowPool(g, x, y, ch) {
   }
 }
 
+// An 8-bit arcade visitor, 8 wide x 13 tall: hair, face, shirt, jeans,
+// sneakers. pose "stand" faces you, "back" faces the machine they are
+// playing, and "walk1"/"walk2" are the two poses of the walk cycle.
+function personRows(outfit, pose) {
+  const H = outfit.hair;
+  const SK = outfit.skin;
+  const S = outfit.shirt;
+  const P = outfit.pants;
+  const face = pose === "back" ? H : SK;
+  const legs =
+    pose === "walk1"
+      ? [
+          "." + P + P + ".." + P + P + ".",
+          "." + P + P + ".." + P + P + ".",
+          "." + P + "...." + P + ".",
+          ".k....k.",
+        ]
+      : pose === "walk2"
+        ? [
+            ".." + P + P + P + P + "..",
+            ".." + P + P + P + P + "..",
+            ".." + P + P + P + P + "..",
+            "..kkkk..",
+          ]
+        : [
+            ".." + P + P + P + P + "..",
+            ".." + P + ".." + P + "..",
+            ".." + P + ".." + P + "..",
+            "..k..k..",
+          ];
+  return [
+    ".." + H + H + H + H + "..",
+    ".." + H + H + H + H + "..",
+    ".." + face + face + face + face + "..",
+    ".." + face + face + face + face + "..",
+    "." + S + S + S + S + S + S + ".",
+    SK + "." + S + S + S + S + "." + SK,
+    "." + S + S + S + S + S + S + ".",
+    ".." + P + P + P + P + "..",
+    ".." + P + P + P + P + "..",
+  ].concat(legs);
+}
+
+// Stamp a visitor onto the room (the standing crowd).
+function drawPerson(g, x, y, outfit, pose) {
+  stamp(g, personRows(outfit, pose), x, y);
+}
+
+// Build a walk frame as its own grid, for the visitors that stroll.
+function buildWalker(outfit, pose) {
+  const rows = personRows(outfit, pose);
+  const g = makeGrid(8, 13);
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) g.set(x, y, rows[y][x]);
+  }
+  return g;
+}
+
 // Puts a world point on the floor: depth wd goes 0 at the back wall to
 // 1 at the front, and wx is left (-) or right (+) of the middle.
 function setFloorPixel(g, wx, wd, ch) {
@@ -530,8 +591,9 @@ function drawCarpet(g) {
 // tubes with light cones, a pennant banner, star wall, framed posters,
 // little green invaders marching across the wall, a row of distant
 // cabinets playing tiny games, a change machine, a snack machine, a wall
-// clock, a trophy poster, marquee glow pools on the carpet, neon signs
-// with glow halos, and the classic neon-pattern arcade carpet.
+// clock, a trophy poster, marquee glow pools on the carpet, a whole
+// crowd of 8-bit visitors, neon signs with glow halos, and the classic
+// neon-pattern arcade carpet.
 function buildRoom() {
   const g = makeGrid(160, 90);
   g.rect(0, 0, 160, 90, "d");
@@ -647,6 +709,8 @@ function buildRoom() {
   // A whole row of distant cabinets, plus the change machine.
   farCabinet(g, 6, 30, "p", "pong");
   farCabinet(g, 26, 32, "y", "");
+  farCabinet(g, 58, 31, "B", "pong");
+  farCabinet(g, 78, 32, "g", "invader");
   farCabinet(g, 116, 31, "O", "");
   farCabinet(g, 134, 32, "c", "invader");
   changeMachine(g);
@@ -659,6 +723,8 @@ function buildRoom() {
   // Pools of marquee light on the carpet under the glowing cabinets.
   glowPool(g, 14, 58, "P");
   glowPool(g, 34, 60, "o");
+  glowPool(g, 66, 59, "C");
+  glowPool(g, 86, 60, "G");
   glowPool(g, 124, 59, "P");
   glowPool(g, 142, 60, "C");
   glowPool(g, 154, 57, "o");
@@ -687,6 +753,15 @@ function buildRoom() {
   stamp(g, INVADER, 44, 5);
   stamp(g, INVADER, 106, 6);
   stamp(g, INVADER, 117, 18);
+
+  // The crowd: 8-bit visitors. The ones facing away are the players
+  // glued to their machines; the rest are watching the room.
+  drawPerson(g, 31, 47, { hair: "r", skin: "N", shirt: "y", pants: "B" }, "back");
+  drawPerson(g, 46, 52, { hair: "k", skin: "N", shirt: "p", pants: "S" }, "back");
+  drawPerson(g, 150, 51, { hair: "y", skin: "T", shirt: "c", pants: "B" }, "back");
+  drawPerson(g, 16, 50, { hair: "m", skin: "N", shirt: "k", pants: "E" }, "stand");
+  drawPerson(g, 24, 63, { hair: "k", skin: "T", shirt: "g", pants: "B" }, "stand");
+  drawPerson(g, 108, 58, { hair: "B", skin: "N", shirt: "o", pants: "K" }, "stand");
 
   return g;
 }

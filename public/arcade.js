@@ -1,8 +1,10 @@
-// Abner's Arcade v9: logins STAY logged in, the machine boots to GAME
-// SELECT, and the coin now really flies out of the screen and drops into
-// the machine's coin slot, with a gold glint when it lands. The art is
-// drawn in pixels.js; this file places clickable parts on top of it. The
-// real auth work still happens in auth.js + the server.
+// Abner's Arcade v10: a CAMERA SHOW opens the page - the arcade cuts and
+// pans between shots like a game demo, and pressing play glides the
+// camera home with a slow zoom onto the machine. The room also has a
+// crowd now: pixel visitors at the machines and two kids strolling the
+// carpet. The art is drawn in pixels.js; this file places clickable
+// parts on top of it. The real auth work still happens in auth.js + the
+// server.
 
 const MACHINE = { gridW: 44, gridH: 68, scale: 9 };
 
@@ -57,6 +59,105 @@ document.addEventListener("DOMContentLoaded", () => {
   const machineCanvas = document.getElementById("machine-canvas");
   const screenOverlay = document.getElementById("screen-overlay");
   const stickEl = document.getElementById("joystick");
+
+  // ---- THE CAMERA ----
+  // Everything you see (the room + the machine) sits inside one "scene"
+  // box that we pan and zoom like a TV camera. Before you play, an
+  // attract loop cuts between shots of the arcade; pressing play glides
+  // the camera back to the hero machine first.
+  const scene = document.createElement("div");
+  scene.className = "camera-scene";
+  room.insertBefore(scene, room.firstChild);
+  scene.appendChild(document.getElementById("room-canvas"));
+  scene.appendChild(wrap);
+
+  const ROOM_W = 160;
+  const ROOM_H = 90;
+  const HOME = { x: 80, y: 45, z: 1 };
+
+  // The room art is 160x90 pixels stretched to COVER the room box, so
+  // this maps a point on the art to its spot on the page.
+  function coverMap() {
+    const W = room.clientWidth;
+    const H = room.clientHeight;
+    const drawnW = Math.max(W, (H * ROOM_W) / ROOM_H);
+    const drawnH = (drawnW * ROOM_H) / ROOM_W;
+    return {
+      W: W,
+      H: H,
+      drawnW: drawnW,
+      drawnH: drawnH,
+      offX: (W - drawnW) / 2,
+      offY: (H - drawnH) / 2,
+    };
+  }
+
+  function gridToScene(px, py, map) {
+    return {
+      x: map.offX + (px / ROOM_W) * map.drawnW,
+      y: map.offY + (py / ROOM_H) * map.drawnH,
+    };
+  }
+
+  let currentShot = HOME;
+
+  // ms = 0 means a hard cut; a bigger ms is a smooth camera move.
+  function cameraTo(shot, ms) {
+    const map = coverMap();
+    const p = gridToScene(shot.x, shot.y, map);
+    scene.style.transition = ms > 0 ? "transform " + ms + "ms ease-in-out" : "none";
+    scene.style.transform =
+      "translate(" + (map.W / 2 - shot.z * p.x) + "px, " +
+      (map.H / 2 - shot.z * p.y) + "px) scale(" + shot.z + ")";
+    currentShot = shot;
+  }
+
+  // ---- WALKING VISITORS ----
+  // Two 8-bit kids stroll the carpet on a two-frame walk cycle. They
+  // live inside the camera scene, so they ride along with every shot -
+  // and they pass BEHIND the hero machine, like real people would.
+  const walkers = [
+    { outfit: { hair: "p", skin: "N", shirt: "k", pants: "B" }, x: 34, feetY: 68, dir: 1, speed: 0.45, frame: 0 },
+    { outfit: { hair: "y", skin: "T", shirt: "c", pants: "S" }, x: 126, feetY: 76, dir: -1, speed: 0.4, frame: 1 },
+  ];
+
+  function placeWalker(w) {
+    const map = coverMap();
+    const p = gridToScene(w.x, w.feetY, map);
+    const size = (map.drawnW / ROOM_W) * 8;
+    const height = (size / 8) * 13;
+    w.el.style.width = size + "px";
+    w.el.style.height = height + "px";
+    w.el.style.left = p.x - size / 2 + "px";
+    w.el.style.top = p.y - height + "px";
+  }
+
+  function drawWalkerFrame(w) {
+    renderGrid(w.cv, buildWalker(w.outfit, w.frame === 0 ? "walk1" : "walk2"), 8);
+  }
+
+  walkers.forEach((w) => {
+    w.el = document.createElement("div");
+    w.el.className = "walker";
+    w.cv = document.createElement("canvas");
+    w.el.appendChild(w.cv);
+    scene.appendChild(w.el);
+    placeWalker(w);
+    drawWalkerFrame(w);
+  });
+
+  let walkTick = 0;
+  setInterval(() => {
+    walkTick += 1;
+    walkers.forEach((w) => {
+      w.x += w.dir * w.speed;
+      if (w.x > 148) w.dir = -1;
+      if (w.x < 10) w.dir = 1;
+      if (walkTick % 2 === 0) w.frame = 1 - w.frame;
+      placeWalker(w);
+      drawWalkerFrame(w);
+    });
+  }, 90);
 
   // Draw the pixel art.
   const machine = buildMachine();
@@ -118,6 +219,8 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", () => {
     layoutControls();
     fitZoom();
+    walkers.forEach(placeWalker);
+    cameraTo(currentShot, 0);
   });
 
   // The coin slot glint: a gold flash right where the flying coin lands.
@@ -174,6 +277,8 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchPlayer().then((player) => {
     if (player) {
       currentPlayer = player;
+      stopAttractShow();
+      cameraTo(HOME, 0);
       room.classList.add("zoomed", "form-view", "skip-anim");
       document.getElementById("welcome-title").textContent = "HI, " + player.username.toUpperCase() + "!";
       if (player.role === "admin") {
@@ -183,13 +288,89 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ENTER: zoom in with a CRT flicker.
-  document.getElementById("enter-btn").addEventListener("click", () => {
+  // ---- THE ATTRACT CAMERA SHOW ----
+  // Like the demo loop on a real arcade machine: while nobody is
+  // playing, the "camera" cuts and glides around the room.
+  const SHOTS = [
+    { cam: { x: 80, y: 45, z: 1 }, ms: 0, hold: 2200 },               // the whole arcade
+    { cam: { x: 80, y: 43, z: 1.45 }, ms: 3000, hold: 2000 },         // slow push on the hero
+    { cam: { x: 46, y: 40, z: 2.1 }, ms: 0, hold: 2400 },             // CUT: snack machine + kid
+    { cam: { x: 12, y: 38, z: 2 }, ms: 0, hold: 300,                  // CUT: the cabinet row...
+      pan: { x: 72, y: 40, z: 2 }, panMs: 4600, hold2: 500 },         // ...then a slow pan across
+    { cam: { x: 96, y: 72, z: 1.9 }, ms: 0, hold: 2400 },             // CUT: the crowd on the carpet
+    { cam: { x: 134, y: 20, z: 2.15 }, ms: 0, hold: 2200 },           // CUT: the neon signs
+    { cam: { x: 80, y: 54, z: 1.55 }, ms: 0, hold: 300,               // and a slow pull back out
+      pan: { x: 80, y: 45, z: 1 }, panMs: 3000, hold2: 400 },         // to the wide shot again
+  ];
+  let attractOn = true;
+  let attractTimer = null;
+  let shotIndex = 0;
+
+  const hud = document.createElement("button");
+  hud.type = "button";
+  hud.className = "arcade-btn attract-hud";
+  hud.textContent = "PRESS ENTER TO PLAY";
+  room.appendChild(hud);
+
+  function stopAttractShow() {
+    attractOn = false;
+    clearTimeout(attractTimer);
+    hud.classList.add("hidden");
+  }
+
+  function nextShot() {
+    if (!attractOn) return;
+    const shot = SHOTS[shotIndex];
+    cameraTo(shot.cam, shot.ms);
+    clearTimeout(attractTimer);
+    if (shot.pan) {
+      attractTimer = setTimeout(() => {
+        if (!attractOn) return;
+        cameraTo(shot.pan, shot.panMs);
+        attractTimer = setTimeout(() => {
+          if (!attractOn) return;
+          shotIndex = (shotIndex + 1) % SHOTS.length;
+          nextShot();
+        }, shot.panMs + (shot.hold2 || 0));
+      }, shot.hold);
+    } else {
+      attractTimer = setTimeout(() => {
+        if (!attractOn) return;
+        shotIndex = (shotIndex + 1) % SHOTS.length;
+        nextShot();
+      }, shot.ms + shot.hold);
+    }
+  }
+  nextShot();
+
+  // PLAY: glide the camera home first, THEN the machine does its own
+  // zoom-in with a CRT flicker - the slow zoom you feel in a real game.
+  function machineBoot() {
+    if (room.classList.contains("zoomed")) return;
     room.classList.remove("skip-anim");
     room.classList.add("zoomed");
     crtBoot();
     playTone(660, 0.08);
     show("coin");
+  }
+
+  function pressStart() {
+    if (!attractOn || room.classList.contains("zoomed")) return;
+    stopAttractShow();
+    const atHome =
+      currentShot.z === HOME.z && currentShot.x === HOME.x && currentShot.y === HOME.y;
+    if (atHome) {
+      machineBoot();
+    } else {
+      cameraTo(HOME, 1500);
+      setTimeout(machineBoot, 1500);
+    }
+  }
+
+  document.getElementById("enter-btn").addEventListener("click", pressStart);
+  hud.addEventListener("click", pressStart);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !(event.target instanceof HTMLInputElement)) pressStart();
   });
 
   // INSERT COIN: the coin flies out of the screen and drops into the

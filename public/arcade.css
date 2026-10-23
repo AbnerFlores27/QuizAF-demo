@@ -1,4 +1,4 @@
-/* Abner's Arcade v9 - pixel-art entrance, Control Room + access log, smart zoom, 80s art, GAME SELECT menu, coin-slot flight */
+/* Abner's Arcade v10 - pixel-art entrance, attract-mode camera show, walking crowd, Control Room, smart zoom, GAME SELECT, coin-slot flight */
 
 body {
   background: #0b0f1e;
@@ -647,4 +647,57 @@ body {
 .cabinet-item:focus-visible {
   outline: 2px solid #00e5ff;
   outline-offset: 2px;
+}
+
+/* ---- THE CAMERA (v10) ----
+   arcade.js pans and zooms this box like a TV camera for the attract
+   shots, then glides it home before the machine zoom takes over. */
+.camera-scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 10px;
+}
+
+/* The "PRESS ENTER" prompt while the camera show runs. */
+.attract-hud {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  z-index: 5;
+  background: #ffd60a;
+  border-color: #ffffff;
+  box-shadow: 0 0 18px #ffd60a;
+  color: #0b0f1e;
+  animation: hud-bounce 1.4s ease-in-out infinite;
+}
+
+.attract-hud:hover,
+.attract-hud:active,
+.attract-hud:focus {
+  background: #ffe14d;
+  outline: none;
+}
+
+@keyframes hud-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-5px); }
+}
+
+/* 8-bit visitors strolling the carpet (drawn in pixels.js). */
+.walker {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.walker canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
 }
