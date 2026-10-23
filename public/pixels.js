@@ -1,6 +1,9 @@
-// Abner's Arcade pixel-art engine v10 - a whole arcade, in 8 bits.
+// Abner's Arcade pixel-art engine v11 - a whole arcade, in 8 bits.
 // Sprites are drawn pixel by pixel with code, the same way real 8-bit
-// game graphics were made. No image files at all.
+// game graphics were made. No image files at all. v11 stretches the
+// room from 160 to 448 cells wide: an east aisle of glowing cabinets, a
+// snack corner with a popcorn cart, a prize case, and the front doors -
+// so the camera can travel across the whole floor.
 
 const PALETTE = {
   ".": null,          // transparent
@@ -587,27 +590,139 @@ function drawCarpet(g) {
   }
 }
 
-// The arcade room background (160x90): black ceiling tiles, hanging neon
+
+// v11: a popcorn cart for the snack corner - a glass case full of
+// popcorn riding on red-and-white striped legs, with two little wheels.
+function popcornCart(g, x, y) {
+  g.rect(x, y, 12, 13, "S");
+  g.rect(x + 1, y + 1, 10, 5, "k");
+  g.set(x + 2, y + 2, "y");
+  g.set(x + 3, y + 2, "o");
+  g.set(x + 5, y + 2, "y");
+  g.set(x + 6, y + 2, "y");
+  g.set(x + 8, y + 2, "o");
+  g.set(x + 9, y + 2, "y");
+  g.set(x + 3, y + 3, "y");
+  g.set(x + 4, y + 3, "y");
+  g.set(x + 6, y + 3, "o");
+  g.set(x + 7, y + 3, "y");
+  g.set(x + 4, y + 4, "y");
+  g.set(x + 7, y + 4, "o");
+  g.rect(x + 1, y + 6, 10, 1, "s");
+  for (let xx = x + 1; xx < x + 11; xx++) {
+    g.set(xx, y + 7, (xx - x) % 2 === 0 ? "w" : "R");
+    g.set(xx, y + 8, (xx - x) % 2 === 0 ? "R" : "w");
+    g.set(xx, y + 9, (xx - x) % 2 === 0 ? "w" : "R");
+    g.set(xx, y + 10, (xx - x) % 2 === 0 ? "R" : "w");
+  }
+  g.rect(x + 1, y + 11, 10, 2, "k");
+  g.set(x, y + 12, "k");
+  g.set(x + 11, y + 12, "k");
+}
+
+// v11: the carpet continuing east of the classic room, using the same
+// perspective math anchored at the same vanishing point, so the floor
+// pattern flows on seamlessly. Stamps are kept east of cell 160 so the
+// classic room stays pixel-identical.
+function setFloorPixelEast(g, wx, wd, ch) {
+  const x = Math.round(80 + wx * wd);
+  const y = Math.round(54 + 36 * wd);
+  if (y >= 55 && y < 90 && x >= 160 && x < 448) g.set(x, y, ch);
+}
+
+function drawCarpetEast(g) {
+  g.rect(160, 54, 288, 36, "a");
+
+  // Big checker tiles in perspective.
+  for (let y = 55; y < 90; y++) {
+    const wd = (y - 54) / 36;
+    for (let x = 160; x < 448; x++) {
+      const wx = (x - 80) / wd;
+      const col = Math.floor(wx / 16);
+      const row = Math.floor(wd * 8);
+      if ((col + row) % 2 === 0) g.set(x, y, "A");
+    }
+  }
+
+  // Tile seams, horizontal and vertical.
+  for (let row = 1; row <= 8; row++) {
+    const y = Math.round(54 + 36 * (row / 8));
+    if (y <= 54 || y >= 90) continue;
+    for (let x = 160; x < 448; x++) {
+      if ((x + row) % 2 === 0) g.set(x, y, "e");
+    }
+  }
+  for (let wx = 80; wx <= 368; wx += 16) {
+    for (let step = 0; step <= 72; step++) {
+      const wd = 0.05 + (step / 72) * 0.92;
+      if (step % 3 === 0) setFloorPixelEast(g, wx, wd, "e");
+    }
+  }
+
+  // The neon pattern stamped across the east tiles.
+  const CARPET_COLORS = ["p", "c", "y", "g", "O"];
+  for (let tx = 80; tx <= 368; tx += 16) {
+    for (let td = 1; td <= 8; td++) {
+      const wd = td / 8;
+      const hash = ((tx + 64) * 7 + td * 13) % 11;
+      const wx = tx + (hash % 3) * 3 - 3;
+      const color = CARPET_COLORS[hash % 5];
+      const kind = hash % 5;
+      if (kind === 0) {
+        for (let i = 0; i < 4; i++) {
+          for (let j = -i; j <= i; j++) {
+            setFloorPixelEast(g, wx + j, wd + i * 0.02, color);
+          }
+        }
+      } else if (kind === 1) {
+        for (let i = 0; i < 4; i++) {
+          for (let j = -(3 - i); j <= 3 - i; j++) {
+            setFloorPixelEast(g, wx + j, wd + i * 0.02, color);
+          }
+        }
+      } else if (kind === 2) {
+        const rows = [[0], [-1, 1], [-2, 2], [-2, 2], [-1, 1], [0]];
+        for (let i = 0; i < rows.length; i++) {
+          for (const j of rows[i]) {
+            setFloorPixelEast(g, wx + j, wd + i * 0.016, color);
+          }
+        }
+      } else if (kind === 3) {
+        for (let i = 0; i < 6; i++) {
+          setFloorPixelEast(g, wx - 2 + i, wd + (i % 2 === 0 ? 0.012 : 0.048), color);
+        }
+      } else {
+        setFloorPixelEast(g, wx, wd + 0.01, "w");
+        setFloorPixelEast(g, wx, wd + 0.035, color);
+      }
+    }
+  }
+}
+
+// The arcade room background (448x90): black ceiling tiles, hanging neon
 // tubes with light cones, a pennant banner, star wall, framed posters,
 // little green invaders marching across the wall, a row of distant
 // cabinets playing tiny games, a change machine, a snack machine, a wall
 // clock, a trophy poster, marquee glow pools on the carpet, a whole
 // crowd of 8-bit visitors, neon signs with glow halos, and the classic
-// neon-pattern arcade carpet.
+// neon-pattern arcade carpet. v11 stretches the room east: a whole
+// aisle of glowing cabinets, a snack corner with a popcorn cart, a
+// prize case with plushies, and the front doors under a neon star
+// sign - so the camera can travel across the whole arcade.
 function buildRoom() {
-  const g = makeGrid(160, 90);
-  g.rect(0, 0, 160, 90, "d");
+  const g = makeGrid(448, 90);
+  g.rect(0, 0, 448, 90, "d");
 
   // Ceiling: black ceiling tiles with track lights along the edge.
-  g.rect(0, 0, 160, 5, "k");
-  for (let x = 0; x < 160; x += 16) g.rect(x, 0, 1, 5, "d");
-  for (let x = 2; x < 160; x += 9) {
+  g.rect(0, 0, 448, 5, "k");
+  for (let x = 0; x < 448; x += 16) g.rect(x, 0, 1, 5, "d");
+  for (let x = 2; x < 448; x += 9) {
     g.set(x, 5, "S");
     g.set(x + 1, 6, "s");
   }
 
   // Hanging fluorescent tubes, each with a soft cone of light.
-  for (const tx of [32, 128]) {
+  for (const tx of [32, 128, 224, 320, 416]) {
     g.rect(tx - 8, 2, 16, 1, "s");
     g.rect(tx - 7, 3, 14, 1, "x");
     g.set(tx - 7, 3, "w");
@@ -622,9 +737,9 @@ function buildRoom() {
   }
 
   // Party pennant banner strung across the back wall.
-  for (let x = 0; x < 160; x++) g.set(x, 7, "s");
+  for (let x = 0; x < 448; x++) g.set(x, 7, "s");
   const flagColors = ["p", "y", "c", "g"];
-  for (let x = 3; x < 158; x += 8) {
+  for (let x = 3; x < 446; x += 8) {
     const ch = flagColors[Math.floor(x / 8) % 4];
     g.set(x, 8, ch);
     g.set(x + 1, 8, ch);
@@ -635,12 +750,12 @@ function buildRoom() {
   }
 
   // Wall panel seams.
-  for (let x = 20; x < 160; x += 44) g.rect(x, 6, 1, 48, "M");
+  for (let x = 20; x < 448; x += 44) g.rect(x, 6, 1, 48, "M");
 
   // Wall texture + stars in four colors.
   const starColors = ["w", "x", "m", "y"];
   for (let y = 6; y < 54; y++) {
-    for (let x = 0; x < 160; x++) {
+    for (let x = 0; x < 448; x++) {
       const n = (x * 31 + y * 17) % 53;
       if (n === 0) g.set(x, y, starColors[(x + y) % 4]);
       else if ((x * 7 + y * 13) % 29 === 0) g.set(x, y, "K");
@@ -649,7 +764,7 @@ function buildRoom() {
 
   // Fade the top of the wall into shadow.
   for (let y = 6; y < 15; y++) {
-    for (let x = 0; x < 160; x++) {
+    for (let x = 0; x < 448; x++) {
       if ((x * 7 + y * 11) % 4 === 0) g.set(x, y, "M");
     }
   }
@@ -668,11 +783,12 @@ function buildRoom() {
   }
 
   // Baseboard where the wall meets the carpet.
-  g.rect(0, 52, 160, 1, "S");
-  g.rect(0, 53, 160, 1, "s");
+  g.rect(0, 52, 448, 1, "S");
+  g.rect(0, 53, 448, 1, "s");
 
-  // The famous arcade carpet.
+  // The famous arcade carpet, carried on across the east wing.
   drawCarpet(g);
+  drawCarpetEast(g);
 
   // Neon light from the signs spilling onto the carpet.
   for (let y = 58; y < 68; y++) {
@@ -762,6 +878,114 @@ function buildRoom() {
   drawPerson(g, 16, 50, { hair: "m", skin: "N", shirt: "k", pants: "E" }, "stand");
   drawPerson(g, 24, 63, { hair: "k", skin: "T", shirt: "g", pants: "B" }, "stand");
   drawPerson(g, 108, 58, { hair: "B", skin: "N", shirt: "o", pants: "K" }, "stand");
+
+  // ---- v11: THE EAST WING ----
+  // The arcade keeps going: an aisle of glowing cabinets, the snack
+  // corner, the prize case, and the front doors. The camera show
+  // travels through all of it.
+  drawCarpetEast(g);
+
+  // An aisle of distant cabinets, each playing its own little game.
+  farCabinet(g, 166, 31, "p", "pong");
+  farCabinet(g, 186, 32, "y", "");
+  farCabinet(g, 208, 31, "B", "invader");
+  farCabinet(g, 228, 32, "c", "pong");
+
+  // Posters and invaders keep the east wall busy.
+  poster(g, 200, 14, "rocket");
+  poster(g, 246, 16, "car");
+  poster(g, 310, 14, "trophy");
+  stamp(g, INVADER, 180, 8);
+  stamp(g, INVADER, 300, 20);
+  stamp(g, INVADER, 390, 18);
+
+  // Pools of marquee light under the east cabinets.
+  glowPool(g, 174, 58, "P");
+  glowPool(g, 194, 60, "o");
+  glowPool(g, 216, 59, "C");
+  glowPool(g, 236, 60, "G");
+
+  // The snack corner: a second vending machine, a popcorn cart, a
+  // glowing snack sign, and a counter with red stools.
+  vendingMachine(g, 258, 30);
+  popcornCart(g, 270, 44);
+  addHalo(g, 262, 14, 24, 10, "o");
+  g.rect(262, 14, 24, 10, "y");
+  g.rect(263, 15, 22, 8, "k");
+  g.set(266, 17, "c"); g.set(267, 17, "c"); g.set(266, 18, "c"); g.set(267, 18, "c");
+  g.set(266, 19, "w"); g.set(267, 19, "w");
+  g.set(272, 17, "O"); g.set(273, 17, "y"); g.set(272, 18, "R"); g.set(273, 18, "O");
+  g.set(278, 17, "p"); g.set(279, 17, "m"); g.set(278, 18, "p"); g.set(279, 18, "p");
+  g.set(283, 17, "g"); g.set(284, 17, "g"); g.set(283, 18, "w"); g.set(284, 18, "g");
+  g.rect(292, 52, 34, 6, "K");
+  g.rect(292, 52, 34, 1, "l");
+  g.rect(292, 57, 34, 1, "k");
+  for (const sx of [296, 306, 316]) {
+    g.set(sx, 60, "r"); g.set(sx + 1, 60, "r");
+    g.set(sx, 61, "S"); g.set(sx + 1, 61, "S");
+    g.set(sx, 62, "k"); g.set(sx + 1, 62, "k");
+  }
+  glowPool(g, 263, 58, "o");
+  glowPool(g, 306, 58, "y");
+
+  // The prize case: glass, a shelf, plushies, a star and a ball.
+  addHalo(g, 330, 30, 26, 9, "P");
+  g.rect(330, 30, 26, 9, "p");
+  g.rect(331, 31, 24, 7, "k");
+  stamp(g, STAR, 338, 31);
+  g.rect(330, 42, 26, 16, "S");
+  g.rect(331, 43, 24, 11, "k");
+  g.rect(331, 49, 24, 1, "S");
+  g.set(334, 46, "r");
+  g.set(334, 47, "r"); g.set(335, 47, "r");
+  g.set(334, 48, "r"); g.set(335, 48, "r");
+  g.set(342, 47, "y"); g.set(343, 47, "y");
+  g.set(342, 48, "y"); g.set(343, 48, "y");
+  g.set(350, 47, "B"); g.set(351, 47, "B");
+  g.set(350, 48, "B"); g.set(351, 48, "B");
+  g.set(338, 51, "g"); g.set(339, 51, "g");
+  g.set(346, 51, "c"); g.set(347, 51, "c");
+  g.rect(331, 54, 24, 2, "d");
+  glowPool(g, 343, 58, "P");
+
+  // The front doors: steel frame, glass panes, push bars, a welcome
+  // mat, and a neon star sign burning above them.
+  addHalo(g, 402, 5, 36, 10, "C");
+  g.rect(402, 5, 36, 10, "c");
+  g.rect(403, 6, 34, 8, "k");
+  stamp(g, STAR, 416, 6);
+  g.rect(400, 18, 40, 40, "S");
+  g.rect(402, 20, 36, 36, "d");
+  g.rect(404, 22, 15, 32, "x");
+  g.rect(421, 22, 15, 32, "x");
+  g.rect(404, 22, 15, 1, "w");
+  g.rect(421, 22, 15, 1, "w");
+  for (let i = 0; i < 10; i++) {
+    g.set(406 + i, 24 + i, "w");
+    g.set(423 + i, 24 + i, "w");
+  }
+  g.rect(419, 20, 2, 36, "S");
+  g.rect(406, 36, 11, 1, "s");
+  g.rect(422, 36, 11, 1, "s");
+  g.rect(402, 56, 36, 2, "k");
+  g.rect(404, 60, 32, 12, "r");
+  g.rect(406, 62, 28, 8, "k");
+  g.set(410, 66, "y"); g.set(420, 66, "y"); g.set(430, 66, "y");
+  for (let y = 58; y < 64; y++) {
+    for (let x = 404; x < 436; x++) {
+      if ((x + y) % 2 === 0 && (x * 7 + y * 5) % 13 < 6) g.set(x, y, "C");
+    }
+  }
+
+  // The east crowd: players glued to the new cabinets, snackers at the
+  // counter, a kid admiring the prizes, and someone at the doors.
+  drawPerson(g, 171, 47, { hair: "B", skin: "T", shirt: "c", pants: "K" }, "back");
+  drawPerson(g, 191, 52, { hair: "y", skin: "N", shirt: "V", pants: "S" }, "back");
+  drawPerson(g, 213, 47, { hair: "m", skin: "N", shirt: "y", pants: "k" }, "back");
+  drawPerson(g, 286, 62, { hair: "r", skin: "N", shirt: "g", pants: "k" }, "stand");
+  drawPerson(g, 297, 57, { hair: "y", skin: "T", shirt: "p", pants: "E" }, "stand");
+  drawPerson(g, 332, 58, { hair: "y", skin: "N", shirt: "p", pants: "S" }, "stand");
+  drawPerson(g, 412, 56, { hair: "k", skin: "T", shirt: "c", pants: "K" }, "stand");
 
   return g;
 }

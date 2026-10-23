@@ -1,10 +1,12 @@
-// Abner's Arcade v10: a CAMERA SHOW opens the page - the arcade cuts and
-// pans between shots like a game demo, and pressing play glides the
-// camera home with a slow zoom onto the machine. The room also has a
-// crowd now: pixel visitors at the machines and two kids strolling the
-// carpet. The art is drawn in pixels.js; this file places clickable
-// parts on top of it. The real auth work still happens in auth.js + the
-// server.
+// Abner's Arcade v11: THE BIG ARCADE. The room now stretches way past
+// the hero machine - a whole aisle of glowing cabinets, a snack corner,
+// a prize case, and the front doors - and the attract camera show
+// TRAVELS across it: it starts at the doors and glides the entire
+// length of the arcade before cutting between close-up shots. Pressing
+// play lands the camera home with a slower, cinematic zoom onto the
+// machine. The art is drawn in pixels.js; this file places clickable
+// parts on top of it. The real auth work still happens in auth.js +
+// the server.
 
 const MACHINE = { gridW: 44, gridH: 68, scale: 9 };
 
@@ -71,17 +73,19 @@ document.addEventListener("DOMContentLoaded", () => {
   scene.appendChild(document.getElementById("room-canvas"));
   scene.appendChild(wrap);
 
-  const ROOM_W = 160;
+  const VIEW_W = 160; // the classic room window, in cells
   const ROOM_H = 90;
+  const WORLD_W = 448; // the whole arcade the camera can travel across
   const HOME = { x: 80, y: 45, z: 1 };
 
-  // The room art is 160x90 pixels stretched to COVER the room box, so
-  // this maps a point on the art to its spot on the page.
+  // The classic window is 160x90 cells stretched to COVER the room box;
+  // the whole world is 448 cells wide and trails off to the right,
+  // waiting for the camera. This maps a world point to the page.
   function coverMap() {
     const W = room.clientWidth;
     const H = room.clientHeight;
-    const drawnW = Math.max(W, (H * ROOM_W) / ROOM_H);
-    const drawnH = (drawnW * ROOM_H) / ROOM_W;
+    const drawnW = Math.max(W, (H * VIEW_W) / ROOM_H);
+    const drawnH = (drawnW * ROOM_H) / VIEW_W;
     return {
       W: W,
       H: H,
@@ -89,15 +93,29 @@ document.addEventListener("DOMContentLoaded", () => {
       drawnH: drawnH,
       offX: (W - drawnW) / 2,
       offY: (H - drawnH) / 2,
+      worldW: (drawnW * WORLD_W) / VIEW_W,
     };
   }
 
   function gridToScene(px, py, map) {
     return {
-      x: map.offX + (px / ROOM_W) * map.drawnW,
+      x: map.offX + (px / WORLD_W) * map.worldW,
       y: map.offY + (py / ROOM_H) * map.drawnH,
     };
   }
+
+  // Size the room canvas so the classic 160-cell window sits exactly
+  // where it always did, and the rest of the world trails off to the
+  // right, waiting for the camera to travel it.
+  function fitScene() {
+    const map = coverMap();
+    const cv = document.getElementById("room-canvas");
+    cv.style.left = map.offX + "px";
+    cv.style.top = map.offY + "px";
+    cv.style.width = map.worldW + "px";
+    cv.style.height = map.drawnH + "px";
+  }
+  fitScene();
 
   let currentShot = HOME;
 
@@ -113,18 +131,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ---- WALKING VISITORS ----
-  // Two 8-bit kids stroll the carpet on a two-frame walk cycle. They
+  // Three 8-bit kids stroll the carpet on a two-frame walk cycle. They
   // live inside the camera scene, so they ride along with every shot -
   // and they pass BEHIND the hero machine, like real people would.
   const walkers = [
-    { outfit: { hair: "p", skin: "N", shirt: "k", pants: "B" }, x: 34, feetY: 68, dir: 1, speed: 0.45, frame: 0 },
-    { outfit: { hair: "y", skin: "T", shirt: "c", pants: "S" }, x: 126, feetY: 76, dir: -1, speed: 0.4, frame: 1 },
+    { outfit: { hair: "p", skin: "N", shirt: "k", pants: "B" }, x: 34, feetY: 68, dir: 1, speed: 0.45, frame: 0, minX: 10, maxX: 148 },
+    { outfit: { hair: "y", skin: "T", shirt: "c", pants: "S" }, x: 126, feetY: 76, dir: -1, speed: 0.4, frame: 1, minX: 10, maxX: 148 },
+    // v11: a kid strolling the east wing too, past the snack corner.
+    { outfit: { hair: "g", skin: "N", shirt: "r", pants: "K" }, x: 320, feetY: 70, dir: -1, speed: 0.35, frame: 0, minX: 168, maxX: 436 },
   ];
 
   function placeWalker(w) {
     const map = coverMap();
     const p = gridToScene(w.x, w.feetY, map);
-    const size = (map.drawnW / ROOM_W) * 8;
+    const size = (map.drawnW / VIEW_W) * 8;
     const height = (size / 8) * 13;
     w.el.style.width = size + "px";
     w.el.style.height = height + "px";
@@ -151,8 +171,8 @@ document.addEventListener("DOMContentLoaded", () => {
     walkTick += 1;
     walkers.forEach((w) => {
       w.x += w.dir * w.speed;
-      if (w.x > 148) w.dir = -1;
-      if (w.x < 10) w.dir = 1;
+      if (w.x > w.maxX) w.dir = -1;
+      if (w.x < w.minX) w.dir = 1;
       if (walkTick % 2 === 0) w.frame = 1 - w.frame;
       placeWalker(w);
       drawWalkerFrame(w);
@@ -219,6 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", () => {
     layoutControls();
     fitZoom();
+    fitScene();
     walkers.forEach(placeWalker);
     cameraTo(currentShot, 0);
   });
@@ -290,17 +311,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---- THE ATTRACT CAMERA SHOW ----
   // Like the demo loop on a real arcade machine: while nobody is
-  // playing, the "camera" cuts and glides around the room.
+  // playing, the camera cuts and GLIDES ACROSS THE WHOLE ARCADE.
   const SHOTS = [
-    { cam: { x: 80, y: 45, z: 1 }, ms: 0, hold: 2200 },               // the whole arcade
-    { cam: { x: 80, y: 43, z: 1.45 }, ms: 3000, hold: 2000 },         // slow push on the hero
-    { cam: { x: 46, y: 40, z: 2.1 }, ms: 0, hold: 2400 },             // CUT: snack machine + kid
-    { cam: { x: 12, y: 38, z: 2 }, ms: 0, hold: 300,                  // CUT: the cabinet row...
-      pan: { x: 72, y: 40, z: 2 }, panMs: 4600, hold2: 500 },         // ...then a slow pan across
-    { cam: { x: 96, y: 72, z: 1.9 }, ms: 0, hold: 2400 },             // CUT: the crowd on the carpet
-    { cam: { x: 134, y: 20, z: 2.15 }, ms: 0, hold: 2200 },           // CUT: the neon signs
-    { cam: { x: 80, y: 54, z: 1.55 }, ms: 0, hold: 300,               // and a slow pull back out
-      pan: { x: 80, y: 45, z: 1 }, panMs: 3000, hold2: 400 },         // to the wide shot again
+    // THE WALK-IN: we start at the front doors and glide the whole way
+    // across the arcade to the hero machine. A real ride through the room.
+    { cam: { x: 420, y: 40, z: 2.3 }, ms: 0, hold: 1600,
+      pan: { x: 150, y: 47, z: 1.5 }, panMs: 8000, hold2: 800 },
+    // CUT: down the east aisle of cabinets, then a slow pan along the row.
+    { cam: { x: 168, y: 44, z: 2.05 }, ms: 0, hold: 600,
+      pan: { x: 244, y: 44, z: 2.05 }, panMs: 4200, hold2: 500 },
+    // CUT: the snack corner - vending machine, popcorn cart, stools.
+    { cam: { x: 312, y: 42, z: 2 }, ms: 0, hold: 2600 },
+    // CUT: the prize case with the plushies.
+    { cam: { x: 343, y: 40, z: 2.1 }, ms: 0, hold: 2200 },
+    // CUT: the crowd on the carpet by the hero machine.
+    { cam: { x: 96, y: 72, z: 1.9 }, ms: 0, hold: 2300 },
+    // CUT: the neon signs.
+    { cam: { x: 134, y: 20, z: 2.15 }, ms: 0, hold: 2100 },
+    // THE WHOLE ARCADE in one wide frame, then a slow landing on the
+    // hero machine - the camera settles right where you play.
+    { cam: { x: 224, y: 45, z: 0.36 }, ms: 0, hold: 3000,
+      pan: { x: 80, y: 45, z: 1 }, panMs: 5400, hold2: 700 },
   ];
   let attractOn = true;
   let attractTimer = null;
@@ -362,8 +393,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (atHome) {
       machineBoot();
     } else {
-      cameraTo(HOME, 1500);
-      setTimeout(machineBoot, 1500);
+      cameraTo(HOME, 2600);
+      setTimeout(machineBoot, 2600);
     }
   }
 
