@@ -34,7 +34,16 @@
     try {
       const response = await fetch("/api/quizzes/" + quizId + "/questions");
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Could not load the quiz.");
+      if (!response.ok) {
+        // "API route not found." is the OLD Phase 1 server talking (it has
+        // no /api/quizzes routes). That happens when the files were pulled
+        // but the server process was never restarted: the browser runs the
+        // new code, the server still has the old routes in memory.
+        if (data.error === "API route not found.") {
+          throw new Error("OLD SERVER CODE - STOP + RESTART THE SERVER");
+        }
+        throw new Error(data.error || "Could not load the quiz.");
+      }
 
       quiz = { id: quizId, name: data.quiz, questions: data.questions };
       picks = new Map();
