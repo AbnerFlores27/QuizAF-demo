@@ -557,6 +557,27 @@ body {
   color: #ff2d95;
 }
 
+/* Control Room: SYSTEM STATUS - server code + questions health. */
+.system-status {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #232c4f;
+  border-radius: 6px;
+  background: rgba(18, 23, 43, 0.7);
+  padding: 7px 6px;
+  margin: 8px 0 0;
+}
+
+.status-line {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 7px;
+  margin: 4px 0 0;
+  text-align: center;
+}
+
+.status-ok { color: #39ff88; }
+.status-warn { color: #ff2d95; text-shadow: 0 0 8px rgba(255, 45, 149, 0.6); }
+
 /* Fixes: the starter stylesheet paints every button blue on hover and
    locks page scrolling. Guard the arcade controls and let the page scroll. */
 body {

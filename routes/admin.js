@@ -7,6 +7,10 @@ const { requireAdmin } = require("../middleware/auth");
 
 const router = express.Router();
 
+// Bumped every time the server code changes, so the admin page can SHOW
+// which code the running server actually has (see /system-status).
+const SERVER_CODE = "v12-phase2";
+
 router.use(requireAdmin);
 
 // Lists usernames and roles only - never emails (privacy rule).
@@ -69,6 +73,26 @@ router.get("/access-log", async (_request, response) => {
   } catch (error) {
     console.error("Access log read failed:", error.message);
     response.status(500).json({ error: "Could not load the access log." });
+  }
+});
+
+// SYSTEM STATUS: one glance at what the RUNNING server has. If this
+// route 404s, the running server process is old code (restart needed);
+// if questions_loaded is 0, the seed script has not been run yet.
+router.get("/system-status", async (_request, response) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT (SELECT COUNT(*)::int FROM quizzes) AS quizzes, " +
+        "(SELECT COUNT(*)::int FROM questions) AS questions",
+    );
+    response.json({
+      server_code: SERVER_CODE,
+      quizzes: rows[0] ? rows[0].quizzes : 0,
+      questions_loaded: rows[0] ? rows[0].questions : 0,
+    });
+  } catch (error) {
+    console.error("System status failed:", error.message);
+    response.status(500).json({ error: "Could not load the system status." });
   }
 });
 

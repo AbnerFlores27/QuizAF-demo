@@ -605,6 +605,65 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // ---- SYSTEM STATUS (Control Room) ----
+  // One glance at the machine's health: which code the SERVER is
+  // running, and whether the quiz questions are loaded. If the
+  // system-status API answers 404, the running server process is the
+  // OLD code - the fix is always STOP + RUN in Replit.
+  function ensureStatusBox() {
+    let box = document.getElementById("admin-system-status");
+    if (box) return box;
+    box = document.createElement("div");
+    box.id = "admin-system-status";
+    box.className = "system-status";
+    const title = document.createElement("p");
+    title.className = "screen-sub tiny";
+    title.style.color = "#00e5ff";
+    title.style.margin = "4px 0 0";
+    title.textContent = "SYSTEM STATUS";
+    const lines = document.createElement("div");
+    lines.id = "admin-status-lines";
+    box.append(title, lines);
+    const logTitle = document.querySelector(".log-title");
+    const screen = document.getElementById("screen-admin");
+    if (logTitle && logTitle.parentElement === screen) {
+      screen.insertBefore(box, logTitle);
+    } else {
+      screen.appendChild(box);
+    }
+    return box;
+  }
+
+  async function renderSystemStatus() {
+    ensureStatusBox();
+    const lines = document.getElementById("admin-status-lines");
+    lines.innerHTML = "";
+    const addLine = (text, warn) => {
+      const line = document.createElement("p");
+      line.className = "status-line " + (warn ? "status-warn" : "status-ok");
+      line.textContent = text;
+      lines.appendChild(line);
+    };
+    try {
+      const response = await fetch("/api/admin/system-status");
+      if (response.status === 404) {
+        // Only the OLD server code 404s here - it has no /system-status.
+        addLine("SERVER: OLD CODE - STOP + RUN IN REPLIT", true);
+        return;
+      }
+      if (!response.ok) throw new Error("no");
+      const status = await response.json();
+      addLine("SERVER CODE: " + status.server_code, false);
+      if (status.questions_loaded > 0) {
+        addLine("QUESTIONS LOADED: " + status.questions_loaded, false);
+      } else {
+        addLine("QUESTIONS: 0 - RUN NPM RUN SEED-QUESTIONS", true);
+      }
+    } catch {
+      addLine("STATUS UNKNOWN", true);
+    }
+  }
+
   async function tryAdminUnlock() {
     try {
       const response = await fetch("/api/admin/users");
@@ -625,6 +684,9 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         renderAccessLog([]);
       }
+
+      // SYSTEM STATUS: server code + questions loaded, at a glance.
+      renderSystemStatus();
 
       playTone(784, 0.1);
       setTimeout(() => playTone(1046, 0.2), 110);
