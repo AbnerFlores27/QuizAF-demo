@@ -1,5 +1,6 @@
 -- Phase 1 schema: the user system (users + sessions) plus the admin
--- access log. Later phases add quizzes, questions, attempts, and power-up tables.
+-- access log. Phase 2 adds the quizzes + questions tables.
+-- Later phases add attempt history and power-up tables.
 
 CREATE TABLE IF NOT EXISTS users (
   id            BIGSERIAL PRIMARY KEY,
@@ -28,3 +29,27 @@ CREATE TABLE IF NOT EXISTS admin_access_log (
   allowed    BOOLEAN      NOT NULL,
   created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
+
+-- ============================================================
+-- Phase 2 schema: the 5 quizzes + their questions.
+-- The 5 quizzes match the 5 arcade cabinets on GAME SELECT.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS quizzes (
+  id   INT         PRIMARY KEY,
+  name VARCHAR(50) NOT NULL
+);
+
+-- The correct answer lives ONLY in the database: the API never sends
+-- it to the browser, and the server does all the grading.
+CREATE TABLE IF NOT EXISTS questions (
+  id             BIGSERIAL    PRIMARY KEY,
+  quiz_id        INT          NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
+  question_text  VARCHAR(300) NOT NULL,
+  choice_a       VARCHAR(150) NOT NULL,
+  choice_b       VARCHAR(150) NOT NULL,
+  choice_c       VARCHAR(150) NOT NULL,
+  choice_d       VARCHAR(150) NOT NULL,
+  correct_answer CHAR(1)      NOT NULL CHECK (correct_answer IN ('A', 'B', 'C', 'D'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_questions_quiz ON questions (quiz_id);

@@ -263,6 +263,8 @@ document.addEventListener("DOMContentLoaded", () => {
     coin: document.getElementById("screen-coin"),
     auth: document.getElementById("screen-auth"),
     in: document.getElementById("screen-in"),
+    quiz: document.getElementById("screen-quiz"),
+    results: document.getElementById("screen-results"),
     admin: document.getElementById("screen-admin"),
     denied: document.getElementById("screen-denied"),
   };
@@ -273,6 +275,9 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.values(screens).forEach((el) => el.classList.add("hidden"));
     screens[name].classList.remove("hidden");
   }
+
+  // Phase 2: quiz.js (the quiz engine) reuses the machine screen switcher.
+  window.arcadeShow = show;
 
   function crtBoot() {
     screenOverlay.classList.remove("boot");
@@ -477,18 +482,20 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ---- GAME SELECT ----
-  // The 5 quiz cabinets. Phase 2 loads real quizzes into them; for now
-  // picking one lights it up and shows its status, like a cabinet with
-  // its game still on the truck to the arcade.
+  // The 5 quiz cabinets. Phase 2 is LIVE: clicking one loads that quiz
+  // onto the machine screen. quiz.js fetches the questions and sends the
+  // player's picks to the server - the SERVER does all the grading.
   const cabinetMessage = document.getElementById("cabinet-message");
   document.querySelectorAll(".cabinet-item").forEach((btn) => {
     btn.addEventListener("click", () => {
       playTone(Number(btn.dataset.tone) || 440, 0.08);
       document.querySelectorAll(".cabinet-item").forEach((b) => b.classList.remove("selected"));
       btn.classList.add("selected");
-      const label = btn.textContent.replace(/[0-9]/g, "").trim();
-      cabinetMessage.textContent = label + ": CABINET OPENS IN PHASE 2";
       setTimeout(() => playTone(659, 0.06), 90);
+      cabinetMessage.textContent = "LOADING...";
+      if (typeof window.startQuiz === "function") {
+        window.startQuiz(Number(btn.dataset.quiz) || 0);
+      }
     });
   });
 

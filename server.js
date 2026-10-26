@@ -7,6 +7,7 @@ const { pool } = require("./db/index");
 const { ensureSchema } = require("./db/setup");
 const authRouter = require("./routes/auth");
 const adminRouter = require("./routes/admin");
+const quizRouter = require("./routes/quiz");
 
 const app = express();
 const port = Number(process.env.PORT || 5000);
@@ -75,9 +76,10 @@ app.get("/api/db/example", async (request, response) => {
   }
 });
 
-// Phase 1: authentication + admin-only routes.
+// Phase 1: authentication + admin-only routes. Phase 2: the quiz engine.
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/quizzes", quizRouter);
 
 app.use("/api", (_request, response) => {
   response.status(404).json({ error: "API route not found." });
@@ -89,6 +91,7 @@ ensureSchema()
     app.listen(port, "0.0.0.0", () => {
       console.log("Server listening on 0.0.0.0:" + port);
       console.log("Phase 1 QA pages: /register.html and /login.html");
+      console.log("Phase 2 quiz engine: /api/quizzes (log in, pick a cabinet, play)");
     });
   })
   .catch((error) => {

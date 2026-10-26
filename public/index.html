@@ -12,6 +12,7 @@
     <script src="/app.js" defer></script>
     <script src="/auth.js" defer></script>
     <script src="/arcade.js" defer></script>
+    <script src="/quiz.js" defer></script>
   </head>
   <body>
     <div class="arcade-room" id="arcade-room">
@@ -74,14 +75,38 @@
             <p class="screen-sub tiny hidden" id="admin-badge">* ADMIN *</p>
             <p class="screen-sub small glow-yellow">CREDIT: 1 - GAME SELECT</p>
             <ul class="cabinet-menu" id="cabinet-menu">
-              <li><button type="button" class="cabinet-item cabinet-blue" data-tone="262"><span class="cabinet-glyph glyph-blue" aria-hidden="true">01</span>GAMING HISTORY</button></li>
-              <li><button type="button" class="cabinet-item cabinet-green" data-tone="330"><span class="cabinet-glyph glyph-green" aria-hidden="true">02</span>SPORTS</button></li>
-              <li><button type="button" class="cabinet-item cabinet-cyan" data-tone="392"><span class="cabinet-glyph glyph-cyan" aria-hidden="true">03</span>TECH &amp; INTERNET</button></li>
-              <li><button type="button" class="cabinet-item cabinet-pink" data-tone="440"><span class="cabinet-glyph glyph-pink" aria-hidden="true">04</span>MOVIES &amp; TV</button></li>
-              <li><button type="button" class="cabinet-item cabinet-yellow" data-tone="523"><span class="cabinet-glyph glyph-yellow" aria-hidden="true">05</span>MUSIC</button></li>
+              <li><button type="button" class="cabinet-item cabinet-blue" data-tone="262" data-quiz="1"><span class="cabinet-glyph glyph-blue" aria-hidden="true">01</span>GAMING HISTORY</button></li>
+              <li><button type="button" class="cabinet-item cabinet-green" data-tone="330" data-quiz="2"><span class="cabinet-glyph glyph-green" aria-hidden="true">02</span>SPORTS</button></li>
+              <li><button type="button" class="cabinet-item cabinet-cyan" data-tone="392" data-quiz="3"><span class="cabinet-glyph glyph-cyan" aria-hidden="true">03</span>TECH &amp; INTERNET</button></li>
+              <li><button type="button" class="cabinet-item cabinet-pink" data-tone="440" data-quiz="4"><span class="cabinet-glyph glyph-pink" aria-hidden="true">04</span>MOVIES &amp; TV</button></li>
+              <li><button type="button" class="cabinet-item cabinet-yellow" data-tone="523" data-quiz="5"><span class="cabinet-glyph glyph-yellow" aria-hidden="true">05</span>MUSIC</button></li>
             </ul>
             <p class="screen-sub tiny" id="cabinet-message" role="alert" aria-live="polite"></p>
             <button type="button" class="arcade-btn" id="logout-btn">LOG OUT</button>
+          </section>
+
+          <section class="screen screen-scroll hidden" id="screen-quiz">
+            <p class="screen-title glow-yellow" id="quiz-title">QUIZ</p>
+            <p class="screen-sub tiny" id="quiz-progress">QUESTION 1 OF 10</p>
+            <p class="quiz-question" id="quiz-question"></p>
+            <div class="quiz-choices" id="quiz-choices"></div>
+            <p class="screen-sub tiny" id="quiz-message" role="alert" aria-live="polite"></p>
+            <div class="quiz-nav">
+              <button type="button" class="arcade-btn" id="quiz-prev">BACK</button>
+              <button type="button" class="arcade-btn" id="quiz-next">NEXT</button>
+            </div>
+          </section>
+
+          <section class="screen screen-scroll hidden" id="screen-results">
+            <p class="screen-title glow-pink" id="results-title">GAME OVER</p>
+            <p class="screen-sub small glow-yellow" id="results-score">SCORE: 0/0</p>
+            <p class="screen-sub" id="results-percent">0%</p>
+            <div class="results-marks" id="results-marks"></div>
+            <p class="screen-sub tiny" id="results-message"></p>
+            <div class="quiz-nav">
+              <button type="button" class="arcade-btn" id="quiz-retry">RETRY</button>
+              <button type="button" class="arcade-btn" id="quiz-back">GAME SELECT</button>
+            </div>
           </section>
 
           <section class="screen screen-scroll hidden" id="screen-admin">

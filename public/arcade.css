@@ -703,3 +703,109 @@ body {
   height: 100%;
   image-rendering: pixelated;
 }
+
+/* ---- PHASE 2: THE QUIZ ENGINE ----
+   Questions play out on the machine screen, GAME SELECT style. */
+.quiz-question {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 9px;
+  color: #e6e9f5;
+  text-align: center;
+  line-height: 1.9;
+  margin: 2px 0;
+}
+
+.quiz-choices {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.quiz-choice {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 8px;
+  color: #e6e9f5;
+  background: rgba(18, 23, 43, 0.85);
+  border: 2px solid #39406b;
+  border-radius: 6px;
+  padding: 9px;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* Guard: the starter stylesheet paints buttons blue on hover. */
+.quiz-choice:hover, .quiz-choice:active, .quiz-choice:focus {
+  background: rgba(18, 23, 43, 0.9);
+  border-color: #00e5ff;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.55);
+  outline: none;
+}
+
+/* The answer the player picked lights up green. */
+.quiz-choice.picked,
+.quiz-choice.picked:hover,
+.quiz-choice.picked:active,
+.quiz-choice.picked:focus {
+  border-color: #39ff88;
+  box-shadow: 0 0 14px rgba(57, 255, 136, 0.7);
+  outline: none;
+}
+
+.quiz-choice:focus-visible {
+  outline: 2px solid #00e5ff;
+  outline-offset: 2px;
+}
+
+.choice-letter {
+  flex: none;
+  font-size: 8px;
+  color: #ffd60a;
+  border: 1px solid #ffd60a;
+  border-radius: 4px;
+  padding: 4px 5px;
+}
+
+.choice-text {
+  flex: 1;
+  word-break: break-word;
+}
+
+.quiz-nav {
+  display: flex;
+  gap: 10px;
+}
+
+.quiz-nav .arcade-btn {
+  font-size: 9px;
+  padding: 10px 14px;
+}
+
+.quiz-nav .arcade-btn:disabled {
+  background: #39406b;
+  box-shadow: none;
+  cursor: default;
+}
+
+/* Results: a little row of right/wrong marks, one per question. */
+.results-marks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 200px;
+}
+
+.result-mark {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.mark-correct { color: #39ff88; text-shadow: 0 0 8px rgba(57, 255, 136, 0.8); }
+.mark-wrong { color: #ff2d95; text-shadow: 0 0 8px rgba(255, 45, 149, 0.8); }
+
