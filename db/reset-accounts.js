@@ -2,8 +2,8 @@
 // This is a console-only tool (NOT a website route!) so the only person
 // who can ever run it is someone typing commands in the Replit shell.
 // Use it when the accounts are a mess (like forgotten passwords) and you
-// want a clean slate. Next step after this: npm run seed (brings the
-// admin accounts back from the Replit Secrets).
+// want a clean slate. Next step after this: npm run fresh-start (brings
+// the admin accounts back from the Replit Secrets + reloads the questions).
 const { pool } = require("./index");
 const { ensureSchema } = require("./setup");
 
@@ -28,7 +28,7 @@ async function resetAccounts() {
   console.log("");
   console.log('NEXT: run "npm run fresh-start" - the one-command setup.');
   console.log("(It re-seeds the admin accounts from the ADMIN_PASSWORD secret and");
-  console.log(" reloads the 50 quiz questions. Or run "npm run seed" alone for admins only.)");
+  console.log(" reloads the 50 quiz questions. Or run 'npm run seed' alone for admins only.)");
   console.log("Quiz questions are NOT touched by this reset.");
 
   await pool.end();
