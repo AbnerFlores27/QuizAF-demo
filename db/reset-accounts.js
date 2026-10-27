@@ -11,7 +11,7 @@ async function resetAccounts() {
   await ensureSchema();
 
   // 1) Log everyone out (all sessions die).
-  const sessions = await pool.query("DELETE FROM sessions");
+  const sessions = await pool.query('DELETE FROM "session"');
 
   // 2) Wipe every account.
   const users = await pool.query("DELETE FROM users");

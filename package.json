@@ -10,7 +10,7 @@
     "seed": "node db/seed-admin.js",
     "seed-questions": "node db/seed-questions.js",
     "reset-accounts": "node db/reset-accounts.js",
-    "fresh-start": "node db/reset-accounts.js && node db/seed-admin.js && node db/seed-questions.js"
+    "fresh-start": "node db/setup.js && node db/reset-accounts.js && node db/seed-admin.js && node db/seed-questions.js"
   },
   "keywords": [],
   "author": "",
