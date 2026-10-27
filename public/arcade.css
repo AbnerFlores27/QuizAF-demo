@@ -831,11 +831,11 @@ body {
 .mark-wrong { color: #ff2d95; text-shadow: 0 0 8px rgba(255, 45, 149, 0.8); }
 
 
-/* ---- v12: THE HALLWAY INTRO ----
-   A dark walk-in corridor plays once before the arcade show: the
-   ceiling lights flick on one by one, the camera pushes forward, and
-   the last light is the gold lamp above the hero machine. ENTER (or
-   clicking the hallway) skips straight to the game. */
+/* ---- v12: THE OMINOUS MACHINE INTRO ----
+   One arcade machine alone in a pitch-black void. A single gold lamp
+   hangs above it; as the intro plays the machine wakes up piece by
+   piece (lamp, marquee, neon, screen) while the camera creeps in.
+   ENTER (or clicking the intro) skips straight to the game. */
 .hallway {
   position: absolute;
   inset: 0;
@@ -847,12 +847,15 @@ body {
 .hallway.fade { opacity: 0; transition: opacity 600ms ease; }
 .hallway-scene { position: absolute; inset: 0; }
 .hallway canvas { position: absolute; image-rendering: pixelated; }
+
+/* The gold lamp: a small fixture whose cone of light is sized to the
+   machine by arcade.js (custom properties carry the sizes). */
 .hall-light {
   position: absolute;
-  width: 14px;
-  height: 5px;
+  width: 16px;
+  height: 6px;
   border-radius: 3px;
-  background: #9fe9ff;
+  background: #ffd60a;
   opacity: 0;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -862,36 +865,28 @@ body {
   position: absolute;
   left: 50%;
   top: 100%;
-  width: 130px;
-  height: 230px;
+  width: var(--cone-w, 130px);
+  height: var(--cone-h, 240px);
   transform: translateX(-50%);
-  background: linear-gradient(rgba(159, 233, 255, 0.22), rgba(159, 233, 255, 0));
+  background: linear-gradient(rgba(255, 214, 10, 0.3), rgba(255, 214, 10, 0));
   clip-path: polygon(43% 0, 57% 0, 100% 100%, 0 100%);
 }
 .hall-light::after {
   content: "";
   position: absolute;
   left: 50%;
-  top: 170px;
-  width: 160px;
-  height: 52px;
+  top: var(--pool-y, 170px);
+  width: var(--pool-w, 160px);
+  height: 56px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(rgba(159, 233, 255, 0.28), rgba(159, 233, 255, 0) 70%);
+  background: radial-gradient(rgba(255, 214, 10, 0.32), rgba(255, 214, 10, 0) 70%);
 }
 .hall-light.on {
   opacity: 1;
-  box-shadow: 0 0 18px 6px rgba(159, 233, 255, 0.65);
+  box-shadow: 0 0 24px 9px rgba(255, 214, 10, 0.8);
   animation: hall-flick 0.4s steps(2, jump-none) 2;
 }
-.hall-light.gold { background: #ffd60a; }
-.hall-light.gold::before {
-  background: linear-gradient(rgba(255, 214, 10, 0.3), rgba(255, 214, 10, 0));
-}
-.hall-light.gold::after {
-  background: radial-gradient(rgba(255, 214, 10, 0.4), rgba(255, 214, 10, 0) 70%);
-}
-.hall-light.gold.on { box-shadow: 0 0 24px 9px rgba(255, 214, 10, 0.8); }
 @keyframes hall-flick {
   0% { opacity: 1; }
   50% { opacity: 0.2; }

@@ -55,60 +55,175 @@ async function fetchPlayer() {
   }
 }
 
-// ---- THE HALLWAY INTRO ART (v12) ----
-// The dark walk-in corridor that plays before the arcade show: a
-// pitch-dark hallway whose lights flick on as you move forward, and
-// the last light is the gold lamp above the hero machine. It is its
-// own little pixel-art world (160x90 cells, same size as the classic
-// room window) - pixels.js and the machine stay untouched.
-function buildHallway() {
+// ---- THE OMINOUS MACHINE INTRO ART (v12) ----
+// The intro before the arcade show: ONE arcade machine, alone in a
+// pitch-black void. A single gold lamp hangs above it, and as the
+// camera creeps forward the machine wakes up piece by piece - the
+// lamp, the marquee, the neon trim, and finally the screen. It is its
+// own little pixel-art world (160x90 cells); pixels.js and the real
+// hero machine stay untouched. stage 0 = dead silhouette ... 4 = awake.
+function buildOminous(stage) {
   const g = makeGrid(160, 90);
 
-  // Pitch black everywhere.
+  // The void: pitch black everywhere.
   g.rect(0, 0, 160, 90, "k");
 
-  // The corridor: rows converge on the doorway at the far end.
-  for (let y = 0; y < 90; y++) {
-    const d = Math.abs(y - 45) / 45; // 0 at the far end
-    const hw = Math.round(4 + 74 * d); // half-width of the corridor
-    for (let x = 80 - hw; x < 80 + hw; x++) {
-      let ch;
-      if (y < 45) {
-        ch = (x + y) % 8 === 0 ? "d" : "k"; // ceiling panels
-      } else {
-        const row = Math.floor(d * 7);
-        ch = (x + row) % 9 === 0 ? "K" : row % 2 === 0 ? "f" : "d"; // floor tiles
-      }
-      g.set(x, y, ch);
+  // A whisper of a floor, so the machine is not floating in nothing.
+  g.rect(0, 85, 160, 5, "d");
+  for (let x = 0; x < 160; x += 4) g.set(x, 85, "f");
+
+  const X = 58; // the machine: 44 cells wide, centered in the void
+  const Y = 20;
+
+  // Cabinet body: near-black, with steel edges that barely catch light.
+  g.rect(X, Y, 44, 64, "K");
+  g.rect(X, Y, 44, 14, "u");      // deep violet crown
+  g.rect(X, Y, 1, 64, "S");       // left edge
+  g.rect(X + 43, Y, 1, 64, "S");  // right edge
+  g.rect(X, Y, 44, 1, "S");      // top edge
+  g.rect(X, Y + 63, 44, 1, "S");  // bottom edge
+
+  // Stage 1 - the lamp above finds the machine: chrome highlights.
+  if (stage >= 1) {
+    g.rect(X, Y, 44, 1, "l");
+    g.set(X + 3, Y + 1, "l");
+    g.set(X + 40, Y + 1, "l");
+  }
+
+  // The gold lamp fixture hanging above the machine.
+  g.rect(76, 11, 8, 1, "S");
+  g.rect(77, 12, 6, 1, "o");
+  if (stage >= 1) g.rect(77, 13, 6, 1, "y");
+
+  // Bulb strip under the roof: dead until the neon wakes (stage 3).
+  g.rect(X + 6, Y + 2, 32, 2, "S");
+  if (stage >= 3) {
+    const bulb = ["y", "c", "p", "g"];
+    for (let i = 0; i < 32; i++) {
+      g.set(X + 6 + i, Y + 2, bulb[i % 4]);
+      g.set(X + 6 + i, Y + 3, i % 2 === 0 ? "w" : "s");
     }
-    // Baseboard edges where the floor meets the walls.
-    g.set(80 - hw, y, "K");
-    g.set(80 + hw - 1, y, "K");
   }
 
-  // Dark ceiling fixtures, waiting for their lights.
-  for (const ly of [12, 20, 28]) {
-    g.rect(72, ly, 16, 2, "S");
-    g.set(72, ly, "s");
-    g.set(87, ly, "s");
+  // Marquee: a deep red frame with a dead-black interior.
+  g.rect(X + 6, Y + 5, 32, 9, "r");
+  g.rect(X + 8, Y + 7, 28, 5, "k");
+  if (stage >= 2) {
+    // The marquee flickers alive: neon pink with shine glints.
+    g.rect(X + 8, Y + 7, 28, 5, "p");
+    g.rect(X + 8, Y + 7, 28, 1, "m");
+    g.rect(X + 8, Y + 11, 28, 1, "P");
+    g.set(X + 9, Y + 7, "w");
+    g.set(X + 10, Y + 8, "w");
+    g.set(X + 11, Y + 9, "w");
+  }
+  if (stage >= 3) {
+    // A bulb chase all around the marquee frame + a gold trim.
+    for (let x = X + 6; x < X + 38; x++) {
+      g.set(x, Y + 5, (x - X) % 2 === 0 ? "w" : "o");
+      g.set(x, Y + 13, (x - X) % 2 === 0 ? "o" : "w");
+    }
+    for (let y = Y + 6; y < Y + 13; y++) {
+      g.set(X + 6, y, (y - Y) % 2 === 0 ? "w" : "o");
+      g.set(X + 37, y, (y - Y) % 2 === 0 ? "o" : "w");
+    }
+    g.rect(X + 6, Y + 14, 32, 1, "o");
   }
 
-  // The doorway at the end: a steel frame opening into the arcade.
-  g.rect(70, 34, 20, 22, "S");
-  g.rect(71, 35, 18, 20, "d");
+  // Screen bezel: chrome top lip, steel frame, dead-black screen.
+  g.rect(X + 6, Y + 15, 32, 1, stage >= 1 ? "l" : "s");
+  g.rect(X + 6, Y + 16, 32, 36, "S");
+  g.rect(X + 7, Y + 17, 30, 34, "k");
+  if (stage >= 4) {
+    // The screen wakes: a cold cyan glow breathing in the dark.
+    g.rect(X + 7, Y + 17, 30, 34, "C");
+    g.rect(X + 9, Y + 19, 26, 30, "c");
+    g.set(X + 12, Y + 22, "w");
+    g.set(X + 31, Y + 22, "x");
+    g.set(X + 12, Y + 45, "x");
+    g.set(X + 31, Y + 45, "w");
+  }
+  if (stage >= 3) {
+    // Gold rivets on the bezel corners.
+    g.set(X + 6, Y + 16, "o");
+    g.set(X + 37, Y + 16, "o");
+    g.set(X + 6, Y + 51, "o");
+    g.set(X + 37, Y + 51, "o");
+  }
+  g.rect(X + 6, Y + 52, 32, 1, stage >= 1 ? "l" : "s");
 
-  // The gold lamp fixture above the hero machine (lights up last).
-  g.rect(78, 36, 4, 1, "S");
-  g.rect(77, 37, 6, 1, "o");
+  // Speaker grille: slanted slashes, dead quiet.
+  for (let i = 0; i < 32; i++) {
+    g.set(X + 6 + i, Y + 53, (i + 53) % 4 < 2 ? "s" : "d");
+  }
+  g.rect(X + 6, Y + 54, 32, 1, "s");
 
-  // The hero machine waiting in the doorway, as a dark silhouette.
-  g.rect(75, 40, 10, 14, "K");
-  g.rect(75, 40, 10, 2, "u");
-  g.rect(76, 42, 8, 2, "r");
-  g.rect(77, 44, 6, 6, "k");
-  g.rect(75, 46, 10, 1, "S");
-  g.rect(76, 50, 8, 4, "K");
-  g.rect(76, 50, 8, 1, "V");
+  // Control deck.
+  g.rect(X + 6, Y + 55, 32, 1, stage >= 1 ? "l" : "S");
+  g.rect(X + 6, Y + 56, 32, 4, "S");
+  g.rect(X + 7, Y + 56, 30, 4, "d");
+
+  // Stage 3 - the controls wake up: joystick, four buttons, neon trim.
+  if (stage >= 3) {
+    g.set(X + 12, Y + 56, "R");
+    g.set(X + 11, Y + 57, "w");
+    g.set(X + 12, Y + 57, "R");
+    g.set(X + 13, Y + 57, "R");
+    g.set(X + 12, Y + 58, "k");
+    g.set(X + 10, Y + 59, "s");
+    g.set(X + 11, Y + 59, "s");
+    g.set(X + 12, Y + 59, "k");
+    g.set(X + 13, Y + 59, "s");
+    g.set(X + 14, Y + 59, "s");
+
+    const buttonXs = [X + 22, X + 26, X + 30, X + 34];
+    const buttonColors = ["B", "c", "p", "y"];
+    const buttonGlows = ["C", "C", "P", "o"];
+    for (let i = 0; i < buttonXs.length; i++) {
+      const bx = buttonXs[i];
+      g.set(bx, Y + 56, "s");
+      g.set(bx - 1, Y + 57, "s");
+      g.set(bx, Y + 57, buttonColors[i]);
+      g.set(bx + 1, Y + 57, "s");
+      g.set(bx, Y + 58, "s");
+      g.set(bx, Y + 59, buttonGlows[i]);
+    }
+
+    // T-molding: a neon tube down each side, with small gaps.
+    for (let y = Y + 1; y < Y + 62; y++) {
+      if (y % 5 !== 4) {
+        g.set(X + 1, y, "c");
+        g.set(X + 42, y, "p");
+      }
+    }
+  }
+
+  // Front panel: violet kick stripes + the gold coin door (stage 3).
+  g.rect(X + 6, Y + 60, 32, 2, "K");
+  if (stage >= 3) {
+    for (let x = X + 6; x < X + 38; x++) {
+      if (x < X + 15 || x > X + 28) {
+        const stripe = (x + 61) % 4;
+        g.set(x, Y + 60, stripe < 2 ? "V" : "u");
+        g.set(x, Y + 61, stripe < 2 ? "u" : "V");
+      }
+    }
+    g.rect(X + 15, Y + 60, 14, 2, "o");
+    g.rect(X + 16, Y + 60, 12, 1, "y");
+    g.rect(X + 16, Y + 61, 12, 1, "o");
+    g.set(X + 19, Y + 60, "w");
+    g.set(X + 24, Y + 60, "w");
+    g.set(X + 19, Y + 61, "k");
+    g.set(X + 24, Y + 61, "k");
+    g.set(X + 21, Y + 61, "k");
+    g.set(X + 22, Y + 61, "k");
+    g.set(X + 7, Y + 61, "g");
+    g.set(X + 36, Y + 61, "r");
+  }
+
+  // Feet, planted on the floor.
+  g.rect(X + 4, Y + 64, 8, 4, "S");
+  g.rect(X + 32, Y + 64, 8, 4, "S");
 
   return g;
 }
@@ -407,11 +522,11 @@ document.addEventListener("DOMContentLoaded", () => {
   let attractTimer = null;
   let shotIndex = 0;
 
-  // ---- THE HALLWAY INTRO ----
-  // Before the arcade show, you walk in from the street: a pitch-dark
-  // hallway. The lights flick on one by one as you move forward, and
-  // the very last light - a gold one - is the lamp above the hero
-  // machine, waiting in the doorway at the end.
+  // ---- THE OMINOUS MACHINE INTRO ----
+  // Before the arcade show, there is just ONE machine, alone in a
+  // pitch-black void, with a single gold lamp hanging above it. As
+  // the camera creeps forward the machine wakes up piece by piece:
+  // the lamp, the marquee, the neon trim, and finally the screen.
   const hallWrap = document.createElement("div");
   hallWrap.className = "hallway";
   const hallScene = document.createElement("div");
@@ -420,28 +535,15 @@ document.addEventListener("DOMContentLoaded", () => {
   hallScene.appendChild(hallCanvas);
   hallWrap.appendChild(hallScene);
   room.appendChild(hallWrap);
-  // Clicking anywhere on the hallway = PRESS ENTER (skip to the game).
+  // Clicking anywhere on the intro = PRESS ENTER (skip to the game).
   hallWrap.addEventListener("click", () => pressStart());
 
-  // The ceiling lights down the hall (t = when each one snaps on).
-  const hallLights = [
-    { x: 80, y: 12, t: 350 },
-    { x: 80, y: 20, t: 1000 },
-    { x: 80, y: 28, t: 1650 },
-  ];
-  // The gold lamp above the hero machine - the last light of all.
-  const hallLamp = { x: 80, y: 37 };
+  // The one light in the darkness: the gold lamp over the machine.
+  const hallLamp = { x: 80, y: 13 };
   let hallwayDone = false;
   const hallTimers = [];
-
-  hallLights.forEach((light) => {
-    const el = document.createElement("div");
-    el.className = "hall-light";
-    hallScene.appendChild(el);
-    light.el = el;
-  });
   const hallLampEl = document.createElement("div");
-  hallLampEl.className = "hall-light gold";
+  hallLampEl.className = "hall-light";
   hallScene.appendChild(hallLampEl);
   hallLamp.el = hallLampEl;
 
@@ -456,7 +558,7 @@ document.addEventListener("DOMContentLoaded", () => {
     attractOn = false;
     clearTimeout(attractTimer);
     hud.classList.add("hidden");
-    // The hallway intro dies with the show (ENTER skips both at once).
+    // The ominous intro dies with the show (ENTER skips both at once).
     hallTimers.forEach(clearTimeout);
     if (hallWrap.parentNode) hallWrap.remove();
     hallwayDone = true;
@@ -492,16 +594,19 @@ document.addEventListener("DOMContentLoaded", () => {
     hallCanvas.style.top = map.offY + "px";
     hallCanvas.style.width = map.drawnW + "px";
     hallCanvas.style.height = map.drawnH + "px";
-    // The camera push aims at the doorway (80, 48) - the machine.
+    // The camera push aims straight at the machine's screen.
     hallScene.style.transformOrigin =
-      (map.offX + (80 / 160) * map.drawnW) + "px " +
-      (map.offY + (48 / 90) * map.drawnH) + "px";
-    hallLights.forEach((light) => {
-      light.el.style.left = map.offX + (light.x / 160) * map.drawnW + "px";
-      light.el.style.top = map.offY + (light.y / 90) * map.drawnH + "px";
-    });
+      (map.offX + (79.5 / 160) * map.drawnW) + "px " +
+      (map.offY + (53 / 90) * map.drawnH) + "px";
+    // Place the gold lamp, sized to the cone of light it throws over
+    // the machine (custom properties reach the CSS cone shapes).
+    const cell = map.drawnW / 160;
     hallLamp.el.style.left = map.offX + (hallLamp.x / 160) * map.drawnW + "px";
     hallLamp.el.style.top = map.offY + (hallLamp.y / 90) * map.drawnH + "px";
+    hallLamp.el.style.setProperty("--cone-h", map.drawnH * (74 / 90) + "px");
+    hallLamp.el.style.setProperty("--cone-w", cell * 64 + "px");
+    hallLamp.el.style.setProperty("--pool-y", map.drawnH * (54 / 90) + "px");
+    hallLamp.el.style.setProperty("--pool-w", cell * 84 + "px");
   }
 
   function endHallway() {
@@ -510,28 +615,38 @@ document.addEventListener("DOMContentLoaded", () => {
     hallTimers.forEach(clearTimeout);
     hallWrap.classList.add("fade");
     hallTimers.push(setTimeout(() => hallWrap.remove(), 650));
-    // The show picks up right where the hallway let you off: the doors.
+    // The show picks up at the front doors of the arcade.
     nextShot();
   }
 
   function playHallway() {
-    renderGrid(hallCanvas, buildHallway(), 8);
+    // Stage 0: a dead machine silhouette in the void.
+    renderGrid(hallCanvas, buildOminous(0), 8);
     sizeHallway();
-    // Lights snap on one after another as you walk in.
-    hallLights.forEach((light, i) => {
-      hallTimers.push(setTimeout(() => {
-        light.el.classList.add("on");
-        playTone(196 + i * 22, 0.05, "square", 0.035);
-      }, light.t));
-    });
-    // Then the camera starts moving, deeper down the hall.
-    hallTimers.push(setTimeout(() => {
-      hallScene.style.transition = "transform 3000ms ease-in";
-      hallScene.style.transform = "scale(2.4)";
-    }, 2100));
-    // The gold lamp above the hero machine snaps on - the last light.
+    // The gold lamp snaps on and finds the machine (chrome glints).
     hallTimers.push(setTimeout(() => {
       hallLamp.el.classList.add("on");
+      renderGrid(hallCanvas, buildOminous(1), 8);
+      playTone(196, 0.05, "square", 0.035);
+    }, 350));
+    // The marquee flickers alive.
+    hallTimers.push(setTimeout(() => {
+      renderGrid(hallCanvas, buildOminous(2), 8);
+      playTone(262, 0.05, "square", 0.035);
+    }, 1000));
+    // The neon trim, the buttons and the coin door wake up.
+    hallTimers.push(setTimeout(() => {
+      renderGrid(hallCanvas, buildOminous(3), 8);
+      playTone(330, 0.05, "square", 0.035);
+    }, 1650));
+    // Then the camera starts creeping toward the screen.
+    hallTimers.push(setTimeout(() => {
+      hallScene.style.transition = "transform 3000ms ease-in";
+      hallScene.style.transform = "scale(2.2)";
+    }, 2100));
+    // The screen wakes - the machine is alive.
+    hallTimers.push(setTimeout(() => {
+      renderGrid(hallCanvas, buildOminous(4), 8);
       playTone(523, 0.1);
       hallTimers.push(setTimeout(() => playTone(784, 0.14), 110));
     }, 3300));
