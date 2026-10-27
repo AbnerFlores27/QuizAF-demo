@@ -26,8 +26,9 @@ async function resetAccounts() {
   console.log("  - old access-log rows deleted: " + logs.rowCount);
   console.log("  - users left: " + rows[0].users);
   console.log("");
-  console.log('NEXT: run "npm run seed" to bring back the admin accounts.');
-  console.log("(The ABNER + backup admin passwords come from the ADMIN_PASSWORD secret.)");
+  console.log('NEXT: run "npm run fresh-start" - the one-command setup.');
+  console.log("(It re-seeds the admin accounts from the ADMIN_PASSWORD secret and");
+  console.log(" reloads the 50 quiz questions. Or run "npm run seed" alone for admins only.)");
   console.log("Quiz questions are NOT touched by this reset.");
 
   await pool.end();
