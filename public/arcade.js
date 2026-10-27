@@ -274,6 +274,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function show(name) {
     Object.values(screens).forEach((el) => el.classList.add("hidden"));
     screens[name].classList.remove("hidden");
+    // The LOG OUT button hides again every time GAME SELECT opens -
+    // press the YELLOW deck button twice to bring it back.
+    if (name === "in") {
+      const logoutBtn = document.getElementById("logout-btn");
+      if (logoutBtn) logoutBtn.classList.add("hidden");
+    }
   }
 
   // Phase 2: quiz.js (the quiz engine) reuses the machine screen switcher.
@@ -697,6 +703,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // LOG OUT is a secret option now (Abner's design): pressing the
+  // YELLOW deck button twice makes the LOG OUT button appear.
+  let yellowPresses = 0;
+
   Object.keys(buttonIds).forEach((key) => {
     document.getElementById(buttonIds[key]).addEventListener("click", () => {
       playTone(buttonNotes[key], 0.08);
@@ -710,6 +720,22 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => playTone(1046, 0.09), 80);
       } else {
         stickEl.classList.remove("primed");
+      }
+      // YELLOW twice = reveal the hidden LOG OUT button.
+      if (key === "y") {
+        yellowPresses += 1;
+        if (yellowPresses >= 2) {
+          yellowPresses = 0;
+          const logoutBtn = document.getElementById("logout-btn");
+          if (logoutBtn && logoutBtn.classList.contains("hidden")) {
+            logoutBtn.classList.remove("hidden");
+            document.getElementById("cabinet-message").textContent = "LOGOUT UNLOCKED - PRESS IT TO LEAVE";
+            playTone(784, 0.08);
+            setTimeout(() => playTone(988, 0.1), 90);
+          }
+        }
+      } else {
+        yellowPresses = 0;
       }
     });
   });
