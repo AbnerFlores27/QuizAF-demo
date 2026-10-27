@@ -55,6 +55,64 @@ async function fetchPlayer() {
   }
 }
 
+// ---- THE HALLWAY INTRO ART (v12) ----
+// The dark walk-in corridor that plays before the arcade show: a
+// pitch-dark hallway whose lights flick on as you move forward, and
+// the last light is the gold lamp above the hero machine. It is its
+// own little pixel-art world (160x90 cells, same size as the classic
+// room window) - pixels.js and the machine stay untouched.
+function buildHallway() {
+  const g = makeGrid(160, 90);
+
+  // Pitch black everywhere.
+  g.rect(0, 0, 160, 90, "k");
+
+  // The corridor: rows converge on the doorway at the far end.
+  for (let y = 0; y < 90; y++) {
+    const d = Math.abs(y - 45) / 45; // 0 at the far end
+    const hw = Math.round(4 + 74 * d); // half-width of the corridor
+    for (let x = 80 - hw; x < 80 + hw; x++) {
+      let ch;
+      if (y < 45) {
+        ch = (x + y) % 8 === 0 ? "d" : "k"; // ceiling panels
+      } else {
+        const row = Math.floor(d * 7);
+        ch = (x + row) % 9 === 0 ? "K" : row % 2 === 0 ? "f" : "d"; // floor tiles
+      }
+      g.set(x, y, ch);
+    }
+    // Baseboard edges where the floor meets the walls.
+    g.set(80 - hw, y, "K");
+    g.set(80 + hw - 1, y, "K");
+  }
+
+  // Dark ceiling fixtures, waiting for their lights.
+  for (const ly of [12, 20, 28]) {
+    g.rect(72, ly, 16, 2, "S");
+    g.set(72, ly, "s");
+    g.set(87, ly, "s");
+  }
+
+  // The doorway at the end: a steel frame opening into the arcade.
+  g.rect(70, 34, 20, 22, "S");
+  g.rect(71, 35, 18, 20, "d");
+
+  // The gold lamp fixture above the hero machine (lights up last).
+  g.rect(78, 36, 4, 1, "S");
+  g.rect(77, 37, 6, 1, "o");
+
+  // The hero machine waiting in the doorway, as a dark silhouette.
+  g.rect(75, 40, 10, 14, "K");
+  g.rect(75, 40, 10, 2, "u");
+  g.rect(76, 42, 8, 2, "r");
+  g.rect(77, 44, 6, 6, "k");
+  g.rect(75, 46, 10, 1, "S");
+  g.rect(76, 50, 8, 4, "K");
+  g.rect(76, 50, 8, 1, "V");
+
+  return g;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const room = document.getElementById("arcade-room");
   const wrap = document.getElementById("machine-wrap");
@@ -242,6 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
     fitScene();
     walkers.forEach(placeWalker);
     cameraTo(currentShot, 0);
+    if (!hallwayDone) sizeHallway();
   });
 
   // The coin slot glint: a gold flash right where the flying coin lands.
@@ -348,6 +407,45 @@ document.addEventListener("DOMContentLoaded", () => {
   let attractTimer = null;
   let shotIndex = 0;
 
+  // ---- THE HALLWAY INTRO ----
+  // Before the arcade show, you walk in from the street: a pitch-dark
+  // hallway. The lights flick on one by one as you move forward, and
+  // the very last light - a gold one - is the lamp above the hero
+  // machine, waiting in the doorway at the end.
+  const hallWrap = document.createElement("div");
+  hallWrap.className = "hallway";
+  const hallScene = document.createElement("div");
+  hallScene.className = "hallway-scene";
+  const hallCanvas = document.createElement("canvas");
+  hallScene.appendChild(hallCanvas);
+  hallWrap.appendChild(hallScene);
+  room.appendChild(hallWrap);
+  // Clicking anywhere on the hallway = PRESS ENTER (skip to the game).
+  hallWrap.addEventListener("click", () => pressStart());
+
+  // The ceiling lights down the hall (t = when each one snaps on).
+  const hallLights = [
+    { x: 80, y: 12, t: 350 },
+    { x: 80, y: 20, t: 1000 },
+    { x: 80, y: 28, t: 1650 },
+  ];
+  // The gold lamp above the hero machine - the last light of all.
+  const hallLamp = { x: 80, y: 37 };
+  let hallwayDone = false;
+  const hallTimers = [];
+
+  hallLights.forEach((light) => {
+    const el = document.createElement("div");
+    el.className = "hall-light";
+    hallScene.appendChild(el);
+    light.el = el;
+  });
+  const hallLampEl = document.createElement("div");
+  hallLampEl.className = "hall-light gold";
+  hallScene.appendChild(hallLampEl);
+  hallLamp.el = hallLampEl;
+
+
   const hud = document.createElement("button");
   hud.type = "button";
   hud.className = "arcade-btn attract-hud";
@@ -358,6 +456,10 @@ document.addEventListener("DOMContentLoaded", () => {
     attractOn = false;
     clearTimeout(attractTimer);
     hud.classList.add("hidden");
+    // The hallway intro dies with the show (ENTER skips both at once).
+    hallTimers.forEach(clearTimeout);
+    if (hallWrap.parentNode) hallWrap.remove();
+    hallwayDone = true;
   }
 
   function nextShot() {
@@ -383,7 +485,61 @@ document.addEventListener("DOMContentLoaded", () => {
       }, shot.ms + shot.hold);
     }
   }
-  nextShot();
+  // The hallway intro plays ONCE, then hands the camera to the show.
+  function sizeHallway() {
+    const map = coverMap();
+    hallCanvas.style.left = map.offX + "px";
+    hallCanvas.style.top = map.offY + "px";
+    hallCanvas.style.width = map.drawnW + "px";
+    hallCanvas.style.height = map.drawnH + "px";
+    // The camera push aims at the doorway (80, 48) - the machine.
+    hallScene.style.transformOrigin =
+      (map.offX + (80 / 160) * map.drawnW) + "px " +
+      (map.offY + (48 / 90) * map.drawnH) + "px";
+    hallLights.forEach((light) => {
+      light.el.style.left = map.offX + (light.x / 160) * map.drawnW + "px";
+      light.el.style.top = map.offY + (light.y / 90) * map.drawnH + "px";
+    });
+    hallLamp.el.style.left = map.offX + (hallLamp.x / 160) * map.drawnW + "px";
+    hallLamp.el.style.top = map.offY + (hallLamp.y / 90) * map.drawnH + "px";
+  }
+
+  function endHallway() {
+    if (hallwayDone) return;
+    hallwayDone = true;
+    hallTimers.forEach(clearTimeout);
+    hallWrap.classList.add("fade");
+    hallTimers.push(setTimeout(() => hallWrap.remove(), 650));
+    // The show picks up right where the hallway let you off: the doors.
+    nextShot();
+  }
+
+  function playHallway() {
+    renderGrid(hallCanvas, buildHallway(), 8);
+    sizeHallway();
+    // Lights snap on one after another as you walk in.
+    hallLights.forEach((light, i) => {
+      hallTimers.push(setTimeout(() => {
+        light.el.classList.add("on");
+        playTone(196 + i * 22, 0.05, "square", 0.035);
+      }, light.t));
+    });
+    // Then the camera starts moving, deeper down the hall.
+    hallTimers.push(setTimeout(() => {
+      hallScene.style.transition = "transform 3000ms ease-in";
+      hallScene.style.transform = "scale(2.4)";
+    }, 2100));
+    // The gold lamp above the hero machine snaps on - the last light.
+    hallTimers.push(setTimeout(() => {
+      hallLamp.el.classList.add("on");
+      playTone(523, 0.1);
+      hallTimers.push(setTimeout(() => playTone(784, 0.14), 110));
+    }, 3300));
+    // Fade into the arcade. The attract show takes it from the doors.
+    hallTimers.push(setTimeout(() => endHallway(), 5300));
+  }
+
+  playHallway();
 
   // PLAY: glide the camera home first, THEN the machine does its own
   // zoom-in with a CRT flicker - the slow zoom you feel in a real game.
