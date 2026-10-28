@@ -1,146 +1,98 @@
-// Phase 2 seed: loads the 5 quizzes + all 50 questions from
-// templates/questions.csv into the database. Idempotent: run it as
-// many times as you want - it re-reads the CSV and reloads each quiz's
-// questions inside ONE transaction, so a bad file can never leave
-// half a quiz behind.
-const fs = require("node:fs");
-const path = require("node:path");
-const { pool } = require("./index");
-const { ensureSchema } = require("./setup");
+// Phase 2: loads the 50 questions from templates/questions.csv into
+// the quizzes + questions tables. Safe to run again at any time.
 
-// The 5 quiz cabinets on GAME SELECT.
-const QUIZZES = [
-  { id: 1, name: "GAMING HISTORY" },
-  { id: 2, name: "SPORTS" },
-  { id: 3, name: "TECH & INTERNET" },
-  { id: 4, name: "MOVIES & TV" },
-  { id: 5, name: "MUSIC" },
-];
+const fs = require("fs");
+const path = require("path");
+const pool = require("./index");
 
-const CHOICE_LETTERS = ["A", "B", "C", "D"];
+const QUIZ_NAMES = {
+  1: "Gaming History",
+  2: "Sports",
+  3: "Tech & Internet",
+  4: "Movies & TV",
+  5: "Music",
+};
 
-// Pure CSV reader + validator (no database), so the file format rules
-// live in one testable place.
+// Parse + validate the CSV. Returns { rows, errors }.
 function parseQuestionsCsv(text) {
-  const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
-  if (lines.length < 2) {
-    throw new Error("questions.csv has no question rows.");
-  }
-
-  const expected = [
-    "quiz_id",
-    "question_text",
-    "choice_a",
-    "choice_b",
-    "choice_c",
-    "choice_d",
-    "correct_answer",
-  ];
-  const header = lines[0].split(",").map((field) => field.trim());
-  if (header.length !== expected.length || header.some((field, i) => field !== expected[i])) {
-    throw new Error("questions.csv header must be: " + expected.join(","));
-  }
-
   const rows = [];
-  for (let i = 1; i < lines.length; i++) {
-    const fields = lines[i].split(",").map((field) => field.trim());
-    const rowNumber = i + 1;
-
-    if (fields.length !== expected.length) {
-      throw new Error(
-        "Row " + rowNumber + " needs exactly 7 fields (got " + fields.length + "). No commas inside the text.",
-      );
+  const errors = [];
+  const lines = text.trim().split(/\r?\n/);
+  for (let i = 1; i < lines.length; i++) { // skip the header row
+    const lineNumber = i + 1;
+    if (!lines[i].trim()) continue;
+    const fields = lines[i].split(",");
+    if (fields.length !== 7) {
+      errors.push("Line " + lineNumber + ": needs 7 fields, has " + fields.length + ".");
+      continue;
     }
-
-    const row = {
-      quiz_id: Number(fields[0]),
-      question_text: fields[1],
-      choices: [fields[2], fields[3], fields[4], fields[5]],
-      correct_answer: fields[6].toUpperCase(),
-    };
-
-    if (!QUIZZES.some((quiz) => quiz.id === row.quiz_id)) {
-      throw new Error("Row " + rowNumber + ": quiz_id must be 1, 2, 3, 4, or 5.");
+    const cells = fields.map(function (c) { return c.trim(); });
+    const rowErrors = [];
+    const quizId = Number(cells[0]);
+    const answer = cells[6].toUpperCase();
+    if (!QUIZ_NAMES[quizId]) rowErrors.push("quiz_id " + cells[0] + " must be 1-5");
+    if (!cells[1] || !cells[2] || !cells[3] || !cells[4] || !cells[5]) rowErrors.push("a field is empty");
+    if (!["A", "B", "C", "D"].includes(answer)) rowErrors.push("correct answer must be A, B, C, or D");
+    if (rowErrors.length) {
+      errors.push("Line " + lineNumber + ": " + rowErrors.join("; ") + ".");
+      continue;
     }
-    if (!row.question_text) {
-      throw new Error("Row " + rowNumber + ": question_text is empty.");
-    }
-    row.choices.forEach((choice, choiceIndex) => {
-      if (!choice) {
-        throw new Error("Row " + rowNumber + ": choice " + CHOICE_LETTERS[choiceIndex] + " is empty.");
-      }
-    });
-    if (!CHOICE_LETTERS.includes(row.correct_answer)) {
-      throw new Error("Row " + rowNumber + ": correct_answer must be A, B, C, or D.");
-    }
-
-    rows.push(row);
+    rows.push({ quizId: quizId, question: cells[1], a: cells[2], b: cells[3], c: cells[4], d: cells[5], answer: answer });
   }
-  return rows;
+  // Every quiz needs exactly 10 questions.
+  for (const id of Object.keys(QUIZ_NAMES)) {
+    const n = rows.filter(function (r) { return r.quizId === Number(id); }).length;
+    if (n !== 10) errors.push("Quiz " + id + " (" + QUIZ_NAMES[id] + ") has " + n + " questions, needs 10.");
+  }
+  return { rows: rows, errors: errors };
 }
 
-async function seedQuestions() {
-  await ensureSchema();
-
+// Load everything into the database inside one transaction.
+async function loadQuestions(poolArg) {
   const csvPath = path.join(__dirname, "..", "templates", "questions.csv");
-  const rows = parseQuestionsCsv(fs.readFileSync(csvPath, "utf8"));
-
-  const client = await pool.connect();
+  const text = fs.readFileSync(csvPath, "utf8");
+  const parsed = parseQuestionsCsv(text);
+  if (parsed.errors.length) {
+    throw new Error("questions.csv has problems:\n" + parsed.errors.join("\n"));
+  }
+  const client = await poolArg.connect();
   try {
     await client.query("BEGIN");
-
-    for (const quiz of QUIZZES) {
+    for (const id of Object.keys(QUIZ_NAMES)) {
       await client.query(
-        "INSERT INTO quizzes (id, name) VALUES ($1, $2) " +
-          "ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name",
-        [quiz.id, quiz.name],
+        "INSERT INTO quizzes (id, name) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name",
+        [Number(id), QUIZ_NAMES[id]]
       );
-      await client.query("DELETE FROM questions WHERE quiz_id = $1", [quiz.id]);
+      await client.query("DELETE FROM questions WHERE quiz_id = $1", [Number(id)]);
+      const quizRows = parsed.rows.filter(function (r) { return r.quizId === Number(id); });
+      for (const r of quizRows) {
+        await client.query(
+          "INSERT INTO questions (quiz_id, question_text, choice_a, choice_b, choice_c, choice_d, correct_answer) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+          [r.quizId, r.question, r.a, r.b, r.c, r.d, r.answer]
+        );
+      }
     }
-
-    for (const row of rows) {
-      await client.query(
-        "INSERT INTO questions " +
-          "(quiz_id, question_text, choice_a, choice_b, choice_c, choice_d, correct_answer) " +
-          "VALUES ($1, $2, $3, $4, $5, $6, $7)",
-        [
-          row.quiz_id,
-          row.question_text,
-          row.choices[0],
-          row.choices[1],
-          row.choices[2],
-          row.choices[3],
-          row.correct_answer,
-        ],
-      );
-    }
-
     await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK").catch(() => {});
-    throw error;
+    return parsed.rows.length;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
   } finally {
     client.release();
   }
+}
 
-  const { rows: counts } = await pool.query(
-    "SELECT quiz_id, COUNT(*)::int AS count FROM questions GROUP BY quiz_id ORDER BY quiz_id",
-  );
-  counts.forEach((row) => {
-    const quiz = QUIZZES.find((q) => q.id === row.quiz_id);
-    console.log("Quiz " + row.quiz_id + " (" + quiz.name + "): " + row.count + " questions.");
-  });
-  console.log("Loaded " + rows.length + " questions total from templates/questions.csv.");
-
+async function main() {
+  const n = await loadQuestions(pool);
+  console.log("Loaded " + n + " questions into " + Object.keys(QUIZ_NAMES).length + " quizzes.");
   await pool.end();
 }
 
 if (require.main === module) {
-  seedQuestions().catch(async (error) => {
-    console.error("Question seed failed:", error.message);
-    await pool.end().catch(() => {});
+  main().catch(function (err) {
+    console.error(err.message);
     process.exit(1);
   });
 }
 
-module.exports = { parseQuestionsCsv, seedQuestions };
+module.exports = { parseQuestionsCsv: parseQuestionsCsv, loadQuestions: loadQuestions };

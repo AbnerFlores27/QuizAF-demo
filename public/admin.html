@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin - Abner's Quiz Site</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="/">Abner's Quiz Site</a>
+    <div>
+      <a href="/quizzes.html">Quizzes</a>
+      <span id="nav-auth">Loading...</span>
+    </div>
+  </nav>
+  <main>
+    <div class="card">
+      <h1>Admin - user list</h1>
+      <p>Usernames and roles only. Emails stay private.</p>
+      <p id="status">Loading...</p>
+      <table id="user-table" class="hidden">
+        <thead><tr><th>Username</th><th>Role</th><th>Registered</th></tr></thead>
+        <tbody id="user-rows"></tbody>
+      </table>
+    </div>
+  </main>
+  <script src="/app.js"></script>
+  <script>
+    fetch("/api/admin/users")
+      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+      .then(function (result) {
+        var status = document.getElementById("status");
+        if (!result.ok) {
+          status.textContent = result.data.error || "Could not load the user list.";
+          return;
+        }
+        status.classList.add("hidden");
+        var rows = document.getElementById("user-rows");
+        result.data.users.forEach(function (user) {
+          var tr = document.createElement("tr");
+          var nameTd = document.createElement("td");
+          nameTd.textContent = user.username;
+          var roleTd = document.createElement("td");
+          roleTd.textContent = user.role;
+          var dateTd = document.createElement("td");
+          dateTd.textContent = new Date(user.created_at).toLocaleDateString();
+          tr.appendChild(nameTd);
+          tr.appendChild(roleTd);
+          tr.appendChild(dateTd);
+          rows.appendChild(tr);
+        });
+        document.getElementById("user-table").classList.remove("hidden");
+      });
+  </script>
+</body>
+</html>
