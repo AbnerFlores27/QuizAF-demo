@@ -1,111 +1,25 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <title>Abner's Arcade</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/styles.css">
-    <link rel="stylesheet" href="/arcade.css">
-    <script src="/pixels.js" defer></script>
-    <script src="/app.js" defer></script>
-    <script src="/auth.js" defer></script>
-    <script src="/arcade.js" defer></script>
-  </head>
-  <body>
-    <div class="arcade-room" id="arcade-room">
-      <canvas id="room-canvas" aria-hidden="true"></canvas>
-
-      <div class="machine-wrap" id="machine-wrap">
-        <canvas id="machine-canvas" aria-label="Abner's Arcade machine"></canvas>
-
-        <div class="marquee-overlay" id="marquee-overlay">ABNER'S ARCADE</div>
-
-        <div class="screen-overlay" id="screen-overlay">
-          <div class="scanlines"></div>
-
-          <section class="screen" id="screen-idle">
-            <p class="screen-title glow-pink">ABNER'S ARCADE</p>
-            <p class="screen-sub blink" id="idle-line">HIGH SCORE QUIZZES</p>
-            <button type="button" class="arcade-btn" id="enter-btn">PRESS ENTER</button>
-            <p class="screen-sub tiny">ONE PLAYER - FREE PLAY</p>
-          </section>
-
-          <section class="screen hidden" id="screen-coin">
-            <p class="screen-title glow-yellow blink">INSERT COIN</p>
-            <button type="button" id="coin" aria-label="Insert coin">
-              <canvas id="coin-canvas" aria-hidden="true"></canvas>
-            </button>
-            <p class="screen-sub">CLICK THE COIN</p>
-          </section>
-
-          <section class="screen screen-scroll hidden" id="screen-auth">
-            <div class="auth-tabs">
-              <button type="button" class="tab-btn active" data-tab="login">LOG IN</button>
-              <button type="button" class="tab-btn" data-tab="register">REGISTER</button>
-            </div>
-
-            <form id="login-form" class="auth-form">
-              <label for="identifier">USERNAME OR EMAIL</label>
-              <input id="identifier" name="identifier" type="text" maxlength="255" autocomplete="username" required>
-              <label for="password">PASSWORD</label>
-              <input id="password" name="password" type="password" maxlength="200" autocomplete="current-password" required>
-              <button type="submit" class="arcade-btn">PRESS START</button>
-            </form>
-
-            <form id="register-form" class="auth-form hidden">
-              <label for="username">USERNAME (ON THE SCORE BOARD)</label>
-              <input id="username" name="username" type="text" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" title="3-30 letters, numbers, or underscores" autocomplete="username" required>
-              <label for="email">EMAIL (SAVED TO YOUR ACCOUNT)</label>
-              <input id="email" name="email" type="email" maxlength="255" autocomplete="email" required>
-              <label for="reg-password">PASSWORD (8+ CHARACTERS)</label>
-              <input id="reg-password" name="password" type="password" minlength="8" maxlength="200" autocomplete="new-password" required>
-              <label for="confirm_password">CONFIRM PASSWORD</label>
-              <input id="confirm_password" name="confirm_password" type="password" minlength="8" maxlength="200" autocomplete="new-password" required>
-              <button type="submit" class="arcade-btn">NEW PLAYER</button>
-            </form>
-
-            <p id="auth-message" class="auth-message" role="alert" aria-live="polite"></p>
-          </section>
-
-          <section class="screen hidden" id="screen-in">
-            <p class="screen-title glow-green" id="welcome-title">HI, PLAYER!</p>
-            <p class="screen-sub">CREDIT: 1</p>
-            <p class="screen-sub small">5 GAME CABINETS ARRIVE IN PHASE 2</p>
-            <button type="button" class="arcade-btn" id="logout-btn">LOG OUT</button>
-          </section>
-
-          <section class="screen screen-scroll hidden" id="screen-admin">
-            <p class="screen-title glow-green">SECRET AREA</p>
-            <p class="screen-sub small">ADMIN ROSTER</p>
-            <ul id="admin-list" class="admin-list"></ul>
-            <p class="screen-sub tiny">FULL ADMIN TOOLS ARRIVE IN PHASE 4</p>
-            <button type="button" class="arcade-btn" data-back="true">BACK</button>
-          </section>
-
-          <section class="screen hidden" id="screen-denied">
-            <p class="screen-title glow-pink">ACCESS DENIED</p>
-            <p class="screen-sub">ADMINS ONLY</p>
-            <button type="button" class="arcade-btn" data-back="true">BACK</button>
-          </section>
-        </div>
-
-        <button type="button" class="deck-btn deck-p" id="btn-p" title="Button A" aria-label="Pink button"></button>
-        <button type="button" class="deck-btn deck-y" id="btn-y" title="Button B" aria-label="Yellow button"></button>
-        <button type="button" class="deck-btn deck-c" id="btn-c" title="Button C" aria-label="Cyan button"></button>
-        <button type="button" class="joystick-btn" id="joystick" aria-label="Joystick"></button>
-      </div>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Abner's Quiz Site</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="/">Abner's Quiz Site</a>
+    <div id="nav-auth">Loading...</div>
+  </nav>
+  <main>
+    <div class="card">
+      <h1>Welcome</h1>
+      <p>This is a quiz website for Abner's class project. Right now it has
+      accounts: you can register, log in, and log out. Quizzes arrive in Phase 2.</p>
+      <p><a href="/register.html">Create an account</a> to get started.</p>
     </div>
-
-    <section class="system-check">
-      <p class="system-title">SYSTEM CHECK (STARTER DEMO)</p>
-      <form id="name-form">
-        <label for="name-input">Write a message to save to the database</label>
-        <input id="name-input" name="text" type="text" maxlength="200" placeholder="Hello, database!" required />
-        <button type="submit">Save to the database</button>
-      </form>
-      <p id="response"></p>
-    </section>
-  </body>
+  </main>
+  <script src="/app.js"></script>
+</body>
 </html>

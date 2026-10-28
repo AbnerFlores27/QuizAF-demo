@@ -1,118 +1,103 @@
-// Phase 1 API: registration, login, logout, and "who am I".
+// Registration, login, logout, and "who am I".
+// The SERVER decides everything - the pages never see a password hash.
+
 const express = require("express");
-const { pool } = require("../db/index");
+const router = express.Router();
+const pool = require("../db");
 const { hashPassword, verifyPassword } = require("../lib/passwords");
 
-const router = express.Router();
+// What a valid signup looks like.
+function validateRegistration(input) {
+  const errors = [];
+  const username = String(input.username || "").trim();
+  const email = String(input.email || "").trim();
+  const password = String(input.password || "");
 
-const USERNAME_PATTERN = /^[A-Za-z0-9_]{3,30}$/;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!/^[a-zA-Z0-9_-]{3,20}$/.test(username)) {
+    errors.push("Username: 3-20 letters, numbers, _ or -.");
+  }
+  if (!/^[^s@]+@[^s@]+.[^s@]+$/.test(email)) {
+    errors.push("Email: please use a valid email address.");
+  }
+  if (password.length < 8) {
+    errors.push("Password: at least 8 characters.");
+  }
+  return { errors, username, email, password };
+}
 
-function logIn(request, response, user, successStatus) {
-  // Fresh session id on every login (standard session-fixation protection).
-  request.session.regenerate((error) => {
-    if (error) {
-      console.error("Session regenerate failed:", error.message);
-      return response.status(500).json({ error: "Could not start your session. Try logging in." });
-    }
-    request.session.userId = user.id;
-    request.session.save((saveError) => {
-      if (saveError) {
-        console.error("Session save failed:", saveError.message);
-        return response.status(500).json({ error: "Could not start your session. Try logging in." });
-      }
-      response
-        .status(successStatus)
-        .json({ user: { id: user.id, username: user.username, role: user.role } });
-    });
+// Log the user in: brand-new session id (stops session fixation),
+// then remember who they are.
+function startSession(req, res, user) {
+  req.session.regenerate(() => {
+    req.session.userId = user.id;
+    req.session.username = user.username;
+    req.session.role = user.role;
+    res.json({ user: { username: user.username, role: user.role } });
   });
 }
 
-router.post("/register", async (request, response) => {
-  const body = request.body || {};
-  const username = typeof body.username === "string" ? body.username.trim() : "";
-  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-  const password = typeof body.password === "string" ? body.password : "";
-
-  if (!USERNAME_PATTERN.test(username)) {
-    return response.status(400).json({ error: "Username must be 3-30 letters, numbers, or underscores." });
+// Register a new account. The FIRST account ever registered becomes
+// the admin - everyone after that is a player.
+router.post("/register", async (req, res) => {
+  const check = validateRegistration(req.body || {});
+  if (check.errors.length) {
+    return res.status(400).json({ error: check.errors.join(" ") });
   }
-  if (!EMAIL_PATTERN.test(email) || email.length > 255) {
-    return response.status(400).json({ error: "Enter a valid email address." });
-  }
-  if (password.length < 8 || password.length > 200) {
-    return response.status(400).json({ error: "Password must be at least 8 characters." });
-  }
-
   try {
-    const { rows } = await pool.query(
-      "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, role",
-      [username, email, hashPassword(password)],
+    const count = await pool.query("SELECT COUNT(*)::int AS n FROM users");
+    const role = count.rows[0].n === 0 ? "admin" : "player";
+    const passwordHash = await hashPassword(check.password);
+    const inserted = await pool.query(
+      "INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, username, role",
+      [check.username, check.email, passwordHash, role]
     );
-    logIn(request, response, rows[0], 201);
-  } catch (error) {
-    if (error.code === "23505") {
-      // 23505 = unique constraint violation: username or email already taken.
-      return response.status(409).json({ error: "That username or email is already registered." });
+    startSession(req, res, inserted.rows[0]);
+  } catch (err) {
+    if (err.code === "23505") {
+      return res.status(409).json({ error: "That username or email is already registered." });
     }
-    console.error("Register failed:", error.message);
-    response.status(500).json({ error: "Could not create the account. Try again." });
+    console.error("Register failed: " + err.message);
+    res.status(500).json({ error: "Something went wrong. Try again." });
   }
 });
 
-router.post("/login", async (request, response) => {
-  const body = request.body || {};
-  const identifier = typeof body.identifier === "string" ? body.identifier.trim() : "";
-  const password = typeof body.password === "string" ? body.password : "";
-
+// Log in with a username OR an email, plus the password.
+router.post("/login", async (req, res) => {
+  const identifier = String((req.body || {}).identifier || "").trim();
+  const password = String((req.body || {}).password || "");
   if (!identifier || !password) {
-    return response.status(400).json({ error: "Enter your username (or email) and password." });
+    return res.status(400).json({ error: "Enter your username and password." });
   }
-
   try {
-    const { rows } = await pool.query(
-      "SELECT id, username, role, password_hash FROM users WHERE LOWER(username) = LOWER($1) OR email = $1",
-      [identifier.toLowerCase()],
+    const found = await pool.query(
+      "SELECT id, username, password_hash, role FROM users WHERE LOWER(username) = LOWER($1) OR email = $1",
+      [identifier]
     );
-    const user = rows[0];
-
-    // Same generic message either way: never reveal which part was wrong.
-    if (!user || !verifyPassword(password, user.password_hash)) {
-      return response.status(401).json({ error: "Invalid username or password." });
+    const user = found.rows[0];
+    const ok = user && (await verifyPassword(password, user.password_hash));
+    if (!ok) {
+      // Same message for a wrong username and a wrong password - no hints.
+      return res.status(401).json({ error: "Wrong username or password." });
     }
-
-    logIn(request, response, user, 200);
-  } catch (error) {
-    console.error("Login failed:", error.message);
-    response.status(500).json({ error: "Could not log in. Try again." });
+    startSession(req, res, user);
+  } catch (err) {
+    console.error("Login failed: " + err.message);
+    res.status(500).json({ error: "Something went wrong. Try again." });
   }
 });
 
-router.post("/logout", (request, response) => {
-  request.session.destroy((error) => {
-    if (error) {
-      console.error("Logout failed:", error.message);
-      return response.status(500).json({ error: "Could not log out. Try again." });
-    }
-    response.clearCookie("quiz.sid");
-    response.json({ ok: true });
+// Log out.
+router.post("/logout", (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie("connect.sid");
+    res.json({ ok: true });
   });
 });
 
-router.get("/me", async (request, response) => {
-  if (!request.session || !request.session.userId) {
-    return response.json({ user: null });
-  }
-  try {
-    const { rows } = await pool.query(
-      "SELECT id, username, role FROM users WHERE id = $1",
-      [request.session.userId],
-    );
-    response.json({ user: rows[0] || null });
-  } catch (error) {
-    console.error("Me lookup failed:", error.message);
-    response.status(500).json({ error: "Something went wrong." });
-  }
+// Who is logged in right now? (user is null when logged out)
+router.get("/me", (req, res) => {
+  if (!req.session.userId) return res.json({ user: null });
+  res.json({ user: { username: req.session.username, role: req.session.role } });
 });
 
 module.exports = router;

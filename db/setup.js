@@ -1,26 +1,16 @@
-// Applies schema.sql. Safe to run any number of times (CREATE TABLE IF NOT EXISTS).
-const fs = require("node:fs");
-const path = require("node:path");
-const { pool } = require("./index");
+// Creates the tables if they do not exist yet. Safe to run again.
+const fs = require("fs");
+const path = require("path");
+const pool = require("./index");
 
-const schemaPath = path.join(__dirname, "schema.sql");
-
-async function ensureSchema() {
-  const schema = fs.readFileSync(schemaPath, "utf8");
-  await pool.query(schema);
+async function main() {
+  const sql = fs.readFileSync(path.join(__dirname, "schema.sql"), "utf8");
+  await pool.query(sql);
+  console.log("Tables ready (users + session).");
+  await pool.end();
 }
 
-if (require.main === module) {
-  ensureSchema()
-    .then(async () => {
-      console.log("Schema is up to date (users + session tables).");
-      await pool.end();
-    })
-    .catch(async (error) => {
-      console.error("Could not apply schema:", error.message);
-      await pool.end().catch(() => {});
-      process.exit(1);
-    });
-}
-
-module.exports = { ensureSchema };
+main().catch((err) => {
+  console.error("Setup failed: " + err.message);
+  process.exit(1);
+});

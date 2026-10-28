@@ -1,13 +1,13 @@
 {
-  "name": "workspace",
-  "version": "1.0.0",
-  "description": "Plain HTML, CSS, and JavaScript app with Express 5 and PostgreSQL",
+  "name": "abners-quiz-site",
+  "version": "2.0.0",
+  "description": "Abner's quiz site - a clean class project. Phase 1: accounts and login.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
     "setup": "node db/setup.js",
-    "seed": "node db/seed-admin.js"
+    "reset": "node db/reset.js"
   },
   "keywords": [],
   "author": "",

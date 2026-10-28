@@ -1,22 +1,20 @@
-// Admin-only routes. Phase 1 ships a read-only roster to prove role restrictions.
+// Admin-only API. Players get a plain 403 - the server decides.
+
 const express = require("express");
-const { pool } = require("../db/index");
+const router = express.Router();
+const pool = require("../db");
 const { requireAdmin } = require("../middleware/auth");
 
-const router = express.Router();
-
-router.use(requireAdmin);
-
-// Lists usernames and roles only - never emails (privacy rule).
-router.get("/users", async (_request, response) => {
+// The user list: usernames and roles ONLY - never emails.
+router.get("/users", requireAdmin, async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      "SELECT id, username, role, created_at FROM users ORDER BY created_at ASC",
+    const list = await pool.query(
+      "SELECT username, role, created_at FROM users ORDER BY created_at"
     );
-    response.json({ users: rows });
-  } catch (error) {
-    console.error("Admin users failed:", error.message);
-    response.status(500).json({ error: "Could not load users." });
+    res.json({ users: list.rows });
+  } catch (err) {
+    console.error("User list failed: " + err.message);
+    res.status(500).json({ error: "Something went wrong. Try again." });
   }
 });
 
