@@ -20,3 +20,11 @@ that is a player. `npm run reset` wipes the tables for a clean slate.
 - Register / log in / log out
 - Passwords hashed with scrypt - never stored in plain text
 - Roles: `player` and `admin`; admin-only pages block players with 403
+
+## Phase 2: quizzes
+
+Five quizzes (Gaming History, Sports, Tech & Internet, Movies & TV, Music)
+with 10 questions each. Questions come from `templates/questions.csv`;
+the server loads them automatically at startup if the tables are empty
+(`npm run seed-questions` also works). Answers are graded by the SERVER -
+the browser never sees a correct answer before submitting.
