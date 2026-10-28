@@ -1,58 +1,30 @@
-# SUPER QUIZ - Abner's Quiz Site
+# Abner's Quiz Site
 
-Author: Abner Flores
-Birthday: May 21st 2012
+A quiz website for a high school web development class. Phase 1 is the
+foundation: accounts and login (register, log in, log out, player and
+admin roles).
 
-A plain HTML, CSS, and JavaScript app served by Express 5 on Node.js 24, with PostgreSQL through the pg library (parameterized SQL only).
+## Run it
 
-## Run
+1. `npm install`
+2. Set the `DATABASE_URL` and `SESSION_SECRET` secrets (Replit Secrets tool)
+3. `npm start` (the tables are created automatically)
 
-    npm install
-    npm start
+The FIRST account registered becomes the admin. Every account after
+that is a player. `npm run reset` wipes the tables for a clean slate.
 
-Development with automatic server restarts:
+## Phase 1 features
 
-    npm run dev
+- Express server + static pages in `public/`
+- Postgres: `users` table + `session` table (login sessions)
+- Register / log in / log out
+- Passwords hashed with scrypt - never stored in plain text
+- Roles: `player` and `admin`; admin-only pages block players with 403
 
-## Phase 1 - Foundation & authentication
+## Phase 2: quizzes
 
-This branch (phase-1-foundation-auth) adds the user system:
-
-- users + session tables (db/schema.sql; applied automatically at startup, safe to re-run)
-- Registration, login, logout pages (public/register.html, public/login.html)
-- Passwords hashed with Node's built-in scrypt (lib/passwords.js). Plaintext is never stored or logged
-- Sessions stored in PostgreSQL, so logins survive a server restart
-- Player vs admin roles, checked server-side on every admin route
-- Teacher/admin account seeded from Replit Secrets (db/seed-admin.js, idempotent)
-
-### First-time setup (Replit workspace = QA)
-
-1. npm install
-2. In Replit Secrets, add: SESSION_SECRET (any long random string) and ADMIN_PASSWORD (the teacher's initial password). Optional: ADMIN_USERNAME (default: teacher)
-3. npm run seed
-4. npm start
-
-### Phase 1 API
-
-- POST /api/auth/register - create account (username, email, password)
-- POST /api/auth/login - log in (identifier = username or email, plus password)
-- POST /api/auth/logout - destroy the session
-- GET /api/auth/me - current user or null
-- GET /api/admin/users - admin-only roster (players get 403)
-- GET /api/health - health check
-- GET /api/db/example?text=... - starter database example (parameterized query)
-
-## Database example
-
-Open the home page and submit text to run a PostgreSQL query. The API uses a bound parameter:
-
-    pool.query(
-      "SELECT $1::text AS message, CURRENT_TIMESTAMP AS queried_at",
-      [text],
-    );
-
-The database health/query endpoint is GET /api/db/example?text=...
-
-## Environments
-
-The Replit workspace is QA. Production deployment happens in Phase 5 only, with a separate production database.
+Five quizzes (Gaming History, Sports, Tech & Internet, Movies & TV, Music)
+with 10 questions each. Questions come from `templates/questions.csv`;
+the server loads them automatically at startup if the tables are empty
+(`npm run seed-questions` also works). Answers are graded by the SERVER -
+the browser never sees a correct answer before submitting.

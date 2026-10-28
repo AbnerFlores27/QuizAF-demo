@@ -1,100 +1,83 @@
-const express = require("express");
-const path = require("node:path");
-const session = require("express-session");
-const connectPgSimple = require("connect-pg-simple");
+// Abner's Quiz Site - Phase 1: accounts and login.
+// A clean Express server: it serves the pages in public/ and the
+// small JSON API under /api/. Login sessions live in Postgres.
 
-const { pool } = require("./db/index");
-const { ensureSchema } = require("./db/setup");
-const authRouter = require("./routes/auth");
-const adminRouter = require("./routes/admin");
-const quizRouter = require("./routes/quiz");
+const express = require("express");
+const session = require("express-session");
+const pgSession = require("connect-pg-simple");
+const path = require("path");
+const fs = require("fs");
+
+const pool = require("./db");
+const authRoutes = require("./routes/auth");
+const adminRoutes = require("./routes/admin");
+const quizRoutes = require("./routes/quiz");
+const { loadQuestions } = require("./db/seed-questions");
 
 const app = express();
-const port = Number(process.env.PORT || 5000);
 
-// Replit serves the app behind a proxy; this keeps secure cookies working.
+// Replit serves the app behind its proxy - this keeps secure login
+// cookies working (the old working version had this line).
 app.set("trust proxy", 1);
 
-app.disable("x-powered-by");
-app.use(express.json({ limit: "32kb" }));
-app.use(express.static(path.join(__dirname, "public")));
-
-// Sessions are stored in PostgreSQL, so logins survive a server restart.
 if (!process.env.SESSION_SECRET) {
-  console.warn(
-    "SESSION_SECRET is not set (add it in Replit Secrets). Using a temporary dev secret - logins will not survive a restart.",
-  );
+  console.warn("WARNING: SESSION_SECRET is not set in Secrets. Logins still work, but set it before the final version.");
 }
 
-const PGStore = connectPgSimple(session);
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+// Login sessions. Replit shows the site inside its preview window,
+// which counts as a cross-site context - "lax" cookies get dropped
+// there, so a login can look successful but never stick. "none" +
+// secure is the combination that works in Replit and everywhere.
 app.use(
   session({
-    name: "quiz.sid",
-    secret: process.env.SESSION_SECRET || "dev-secret-set-SESSION_SECRET-in-Replit",
+    store: new (pgSession(session))({ pool: pool }),
+    secret: process.env.SESSION_SECRET || "dev-secret-change-me",
     resave: false,
     saveUninitialized: false,
-    store: new PGStore({ pool, tableName: "session" }),
+    rolling: true, // using the site refreshes the login
     cookie: {
       httpOnly: true,
-      // Replit shows the app inside its embedded preview, which counts as a
-      // cross-site context. "lax" cookies get dropped there, so a login
-      // looked successful but never came back - the page asked you to log
-      // in again right away. "none" + secure is the combo that keeps the
-      // login cookie working inside Replit (and everywhere else).
       sameSite: "none",
       secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // one week
+      maxAge: 1000 * 60 * 60 * 24 * 7, // one week
     },
-  }),
+  })
 );
 
-app.get("/api/health", (_request, response) => {
-  response.json({ status: "ok" });
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/quizzes", quizRoutes);
+
+// Any other /api/ path is a typo, not a missing page.
+app.use("/api", (req, res) => {
+  res.status(404).json({ error: "API route not found." });
 });
 
-app.get("/api/db/example", async (request, response) => {
-  const text = typeof request.query.text === "string" ? request.query.text.trim() : "";
+const PORT = Number(process.env.PORT || 5000);
 
-  if (!text) {
-    return response.status(400).json({ error: "Provide a non-empty text query parameter." });
-  }
-
-  if (text.length > 200) {
-    return response.status(400).json({ error: "Text must be 200 characters or fewer." });
-  }
-
+async function start() {
+  // Make sure the tables exist before the first request comes in.
+  const schemaSql = fs.readFileSync(path.join(__dirname, "db", "schema.sql"), "utf8");
+  await pool.query(schemaSql);
+  // Phase 2: if the question tables are empty, load the CSV once.
   try {
-    const result = await pool.query(
-      "SELECT $1::text AS message, CURRENT_TIMESTAMP AS queried_at",
-      [text],
-    );
-
-    return response.json(result.rows[0]);
-  } catch (error) {
-    console.error("PostgreSQL query failed:", error);
-    return response.status(503).json({ error: "Unable to query PostgreSQL right now." });
+    const count = await pool.query("SELECT COUNT(*)::int AS n FROM questions");
+    if (count.rows[0].n === 0) {
+      const loaded = await loadQuestions(pool);
+      console.log("Loaded " + loaded + " quiz questions automatically.");
+    }
+  } catch (err) {
+    console.error("Could not load the quiz questions: " + err.message);
   }
-});
-
-// Phase 1: authentication + admin-only routes. Phase 2: the quiz engine.
-app.use("/api/auth", authRouter);
-app.use("/api/admin", adminRouter);
-app.use("/api/quizzes", quizRouter);
-
-app.use("/api", (_request, response) => {
-  response.status(404).json({ error: "API route not found." });
-});
-
-// Make sure the users + session tables exist before accepting requests.
-ensureSchema()
-  .then(() => {
-    app.listen(port, "0.0.0.0", () => {
-      console.log("Server listening on 0.0.0.0:" + port);
-      console.log("Phase 1 QA pages: /register.html and /login.html");
-      console.log("Phase 2 quiz engine: /api/quizzes (log in, pick a cabinet, play)");
-    });
-  })
-  .catch((error) => {
-    console.error("Could not prepare the database:", error.message);
-    process.exit(1);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log("Phase 1 running: register, log in, log out.");
   });
+}
+
+start().catch((err) => {
+  console.error("Could not start: " + err.message);
+  process.exit(1);
+});
