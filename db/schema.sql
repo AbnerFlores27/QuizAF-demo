@@ -18,3 +18,22 @@ CREATE TABLE IF NOT EXISTS "session" (
 );
 
 CREATE INDEX IF NOT EXISTS idx_session_expire ON "session" (expire);
+
+-- Phase 2: the quizzes and their questions.
+CREATE TABLE IF NOT EXISTS quizzes (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS questions (
+  id SERIAL PRIMARY KEY,
+  quiz_id INTEGER NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
+  question_text TEXT NOT NULL,
+  choice_a TEXT NOT NULL,
+  choice_b TEXT NOT NULL,
+  choice_c TEXT NOT NULL,
+  choice_d TEXT NOT NULL,
+  correct_answer CHAR(1) NOT NULL CHECK (correct_answer IN ('A', 'B', 'C', 'D'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_questions_quiz ON questions (quiz_id);

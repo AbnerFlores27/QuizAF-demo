@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quizzes - Abner's Quiz Site</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="/">Abner's Quiz Site</a>
+    <div>
+      <a href="/quizzes.html">Quizzes</a>
+      <span id="nav-auth">Loading...</span>
+    </div>
+  </nav>
+  <main>
+    <div class="card">
+      <h1>Pick a quiz</h1>
+      <p id="status">Loading...</p>
+      <div id="quiz-list"></div>
+    </div>
+  </main>
+  <script src="/app.js"></script>
+  <script>
+    fetch("/api/quizzes")
+      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+      .then(function (result) {
+        var status = document.getElementById("status");
+        var list = document.getElementById("quiz-list");
+        if (!result.ok) {
+          status.textContent = result.data.error || "Could not load the quizzes.";
+          return;
+        }
+        status.classList.add("hidden");
+        result.data.quizzes.forEach(function (quiz) {
+          var link = document.createElement("a");
+          link.href = "/quiz.html?id=" + quiz.id;
+          link.textContent = quiz.name;
+          link.className = "quiz-link";
+          list.appendChild(link);
+        });
+      });
+  </script>
+</body>
+</html>
