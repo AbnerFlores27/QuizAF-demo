@@ -16,6 +16,10 @@ const { loadQuestions } = require("./db/seed-questions");
 
 const app = express();
 
+// Replit serves the app behind its proxy - this keeps secure login
+// cookies working (the old working version had this line).
+app.set("trust proxy", 1);
+
 if (!process.env.SESSION_SECRET) {
   console.warn("WARNING: SESSION_SECRET is not set in Secrets. Logins still work, but set it before the final version.");
 }
