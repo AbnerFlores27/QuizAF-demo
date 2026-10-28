@@ -1,51 +1,46 @@
-const apiStatus = document.querySelector("#api-status");
-const queryForm = document.querySelector("#query-form, #name-form");
-const queryText = document.querySelector("#query-text, #name-input");
-const queryResult = document.querySelector("#query-result, #response");
-const submitButton = queryForm?.querySelector('button[type="submit"], button:not([type])');
+// Shared nav bar: figure out who is logged in and show the right links.
+(function () {
+  var navAuth = document.getElementById("nav-auth");
+  if (!navAuth) return;
 
-async function checkApi() {
-  try {
-    const response = await fetch("/api/health");
-    if (!response.ok) {
-      throw new Error("The API returned an error.");
-    }
-
-    apiStatus.textContent = "Online";
-    apiStatus.dataset.state = "ok";
-  } catch {
-    apiStatus.textContent = "Unavailable";
-    apiStatus.dataset.state = "error";
+  // Replit's free servers sleep. The FIRST request after waking can fail
+  // while the server starts - that used to look like being logged out.
+  // So we try a few times before giving up.
+  function checkLogin(triesLeft) {
+    fetch("/api/auth/me")
+      .then(function (r) {
+        if (!r.ok) throw new Error("server said " + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        show(data.user);
+      })
+      .catch(function () {
+        if (triesLeft > 0) {
+          setTimeout(function () { checkLogin(triesLeft - 1); }, 2500);
+        } else {
+          navAuth.innerHTML = '<a href="/login.html">Log in</a>';
+        }
+      });
   }
-}
 
-if (apiStatus) {
-  checkApi();
-}
-
-if (queryForm && queryText && queryResult) {
-  queryForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const text = queryText.value.trim();
-    if (!text) return;
-
-    if (submitButton) submitButton.disabled = true;
-    queryResult.textContent = "Sending to PostgreSQL…";
-
-    try {
-      const params = new URLSearchParams({ text });
-      const response = await fetch(`/api/db/example?${params}`);
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "The query failed.");
-      }
-
-      queryResult.textContent = JSON.stringify(result, null, 2);
-    } catch (error) {
-      queryResult.textContent = error.message;
-    } finally {
-      if (submitButton) submitButton.disabled = false;
+  function show(user) {
+    if (!user) {
+      navAuth.innerHTML =
+        '<a href="/login.html">Log in</a> <a href="/register.html">Register</a>';
+      return;
     }
-  });
-}
+    var adminLink = user.role === "admin" ? ' <a href="/admin.html">Admin</a>' : "";
+    navAuth.innerHTML =
+      "<span>" + user.username + " (" + user.role + ")</span>" +
+      adminLink +
+      ' <button type="button" id="logout-btn">Log out</button>';
+    document.getElementById("logout-btn").addEventListener("click", function () {
+      fetch("/api/auth/logout", { method: "POST" }).then(function () {
+        window.location.href = "/";
+      });
+    });
+  }
+
+  checkLogin(3);
+})();

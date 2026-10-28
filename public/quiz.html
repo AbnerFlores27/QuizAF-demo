@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quiz - Abner's Quiz Site</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="/">Abner's Quiz Site</a>
+    <div>
+      <a href="/quizzes.html">Quizzes</a>
+      <span id="nav-auth">Loading...</span>
+    </div>
+  </nav>
+  <main>
+    <div class="card">
+      <h1 id="quiz-title">Quiz</h1>
+      <p id="status">Loading...</p>
+      <form id="quiz-form"></form>
+      <div id="results" class="results hidden"></div>
+      <p><a href="/quizzes.html">Back to all quizzes</a></p>
+    </div>
+  </main>
+  <script src="/app.js"></script>
+  <script>
+    var quizId = new URLSearchParams(window.location.search).get("id");
+    fetch("/api/quizzes/" + quizId + "/questions")
+      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+      .then(function (result) {
+        var status = document.getElementById("status");
+        var form = document.getElementById("quiz-form");
+        var title = document.getElementById("quiz-title");
+        if (!result.ok) {
+          status.textContent = result.data.error || "Could not load this quiz.";
+          return;
+        }
+        status.classList.add("hidden");
+        title.textContent = result.data.quiz.name;
+        result.data.questions.forEach(function (q, index) {
+          var box = document.createElement("div");
+          box.className = "question";
+          var heading = document.createElement("h2");
+          heading.textContent = (index + 1) + ". " + q.question_text;
+          box.appendChild(heading);
+          var choices = [["A", q.choice_a], ["B", q.choice_b], ["C", q.choice_c], ["D", q.choice_d]];
+          choices.forEach(function (choice) {
+            var label = document.createElement("label");
+            label.className = "choice";
+            var input = document.createElement("input");
+            input.type = "radio";
+            input.name = "q" + q.id;
+            input.value = choice[0];
+            label.appendChild(input);
+            label.appendChild(document.createTextNode(" " + choice[1]));
+            box.appendChild(label);
+          });
+          form.appendChild(box);
+        });
+        var submit = document.createElement("button");
+        submit.type = "submit";
+        submit.textContent = "Submit answers";
+        form.appendChild(submit);
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+          var answers = {};
+          result.data.questions.forEach(function (q) {
+            var picked = form.querySelector('input[name="q' + q.id + '"]:checked');
+            if (picked) answers[String(q.id)] = picked.value;
+          });
+          fetch("/api/quizzes/" + quizId + "/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ answers: answers }),
+          })
+            .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+            .then(function (sub) {
+              var results = document.getElementById("results");
+              form.classList.add("hidden");
+              results.classList.remove("hidden");
+              if (!sub.ok) {
+                results.className = "results bad";
+                results.textContent = sub.data.error || "Could not grade this quiz.";
+                return;
+              }
+              results.className = "results " + (sub.data.percentage >= 70 ? "good" : "bad");
+              var lines = [];
+              lines.push("Score: " + sub.data.score + " / " + sub.data.total + " — " + sub.data.percentage + "%");
+              sub.data.marks.forEach(function (m, i) {
+                lines.push((i + 1) + ". " + (m.correct ? "Correct" : "Wrong"));
+              });
+              results.textContent = lines.join("\n");
+              results.style.whiteSpace = "pre-line";
+              var retry = document.createElement("button");
+              retry.type = "button";
+              retry.textContent = "Retry";
+              retry.addEventListener("click", function () { window.location.reload(); });
+              results.appendChild(document.createElement("br"));
+              results.appendChild(retry);
+            });
+        });
+      });
+  </script>
+</body>
+</html>
