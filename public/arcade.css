@@ -1,4 +1,4 @@
-/* Abner's Arcade v11 - the big arcade: traveling camera show across a 448-cell world, slower machine zoom, pixel-art entrance, walking crowd, Control Room, smart zoom, GAME SELECT, coin-slot flight */
+/* Abner's Arcade v3 - real pixel-art entrance (art drawn in pixels.js) */
 
 body {
   background: #0b0f1e;
@@ -16,16 +16,6 @@ body {
   padding: 20px 10px;
 }
 
-/* Dark vignette so the room feels lit only by the neon. */
-.arcade-room::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(3, 5, 12, 0.55) 100%);
-}
-
 #room-canvas {
   position: absolute;
   inset: 0;
@@ -41,14 +31,12 @@ body {
   z-index: 2;
   width: 396px;
   max-width: 94vw;
-  transition: transform 2.6s cubic-bezier(0.22, 0.9, 0.35, 1);
-  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.65));
+  transition: transform 1.1s cubic-bezier(0.22, 0.9, 0.35, 1);
 }
 
-/* Smart zoom: arcade.js sets --zoom-big / --zoom-form from the window size,
-   so the WHOLE machine always stays on screen. These are only fallbacks. */
-.arcade-room.zoomed .machine-wrap { transform: scale(var(--zoom-big, 1.4)); }
-.arcade-room.zoomed.form-view .machine-wrap { transform: scale(var(--zoom-form, 1.1)); }
+/* Two-stage zoom: dramatic for the coin, comfortable for the forms. */
+.arcade-room.zoomed .machine-wrap { transform: scale(2.05); }
+.arcade-room.zoomed.form-view .machine-wrap { transform: scale(1.38); }
 .arcade-room.zoomed.skip-anim .machine-wrap { transition: none; }
 
 #machine-canvas {
@@ -67,21 +55,10 @@ body {
   font-family: "Press Start 2P", "Courier New", monospace;
   font-size: 13px;
   color: #ffffff;
-  background: linear-gradient(180deg, rgba(255, 45, 149, 0.18), rgba(0, 0, 0, 0.35));
+  text-shadow: 0 0 6px #ffffff, 0 0 14px #ff2d95, 0 0 22px #ff2d95;
   text-align: center;
   padding: 0 4px;
   box-sizing: border-box;
-  border-radius: 4px;
-  animation: marquee-hum 3.5s infinite;
-}
-
-/* A neon sign never holds still - it hums and flickers a little. */
-@keyframes marquee-hum {
-  0%, 90%, 100% { text-shadow: 0 0 6px #ffffff, 0 0 14px #ff2d95, 0 0 26px #ff2d95; }
-  92% { opacity: 0.55; text-shadow: 0 0 4px #ffffff; }
-  94% { opacity: 1; }
-  96% { opacity: 0.7; }
-  98% { opacity: 1; }
 }
 
 .screen-overlay {
@@ -89,7 +66,7 @@ body {
   background: #05070f;
   border-radius: 6px;
   overflow: hidden;
-  box-shadow: inset 0 0 34px rgba(0, 0, 0, 0.85), 0 0 26px rgba(0, 229, 255, 0.18);
+  box-shadow: inset 0 0 34px rgba(0, 0, 0, 0.85);
 }
 
 .screen-overlay.boot {
@@ -157,11 +134,6 @@ body {
 .glow-yellow { color: #ffd60a; text-shadow: 0 0 10px #ffd60a; }
 .glow-green { color: #39ff88; text-shadow: 0 0 10px #39ff88; }
 
-#admin-badge {
-  color: #ffd60a;
-  text-shadow: 0 0 8px rgba(255, 214, 10, 0.7);
-}
-
 .blink { animation: blink 1s steps(2) infinite; }
 
 @keyframes blink {
@@ -206,39 +178,9 @@ body {
   50% { filter: drop-shadow(0 0 18px #ffd60a); }
 }
 
-/* The flying coin: a pixel-art twin of the coin button that streaks
-   out of the screen and drops into the machine's coin slot. */
-.coin-fly {
-  position: absolute;
-  z-index: 4;
-  image-rendering: pixelated;
-  pointer-events: none;
-  transition: transform 0.62s cubic-bezier(0.4, 0, 0.75, 0.6),
-    opacity 0.45s ease-in 0.2s;
-}
-
-/* Gold glint where the coin lands in the slot. */
-.slot-glint {
-  position: absolute;
-  z-index: 4;
-  width: 12px;
-  height: 12px;
-  margin: -6px 0 0 -6px;
-  border-radius: 50%;
-  background: #fff9c4;
-  box-shadow: 0 0 16px 5px #ffd60a;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.slot-glint.flash {
-  animation: slot-glint 0.6s ease-out;
-}
-
-@keyframes slot-glint {
-  0% { opacity: 0; transform: scale(0.3); }
-  35% { opacity: 1; transform: scale(1.3); }
-  100% { opacity: 0; transform: scale(0.55); }
+#coin.fly {
+  animation: none;
+  transition: transform 0.55s ease-in, opacity 0.55s ease-in;
 }
 
 .auth-tabs {
@@ -315,80 +257,17 @@ body {
   text-shadow: 0 0 8px rgba(255, 45, 149, 0.6);
 }
 
-/* Control Room: the admin panel roster. */
 .admin-list {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 8px;
+  color: #39ff88;
   list-style: none;
   padding: 0;
   margin: 8px 0;
   width: 100%;
-}
-
-.panel-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  box-sizing: border-box;
-  font-family: "Press Start 2P", "Courier New", monospace;
-  font-size: 8px;
-  color: #e6e9f5;
-  padding: 7px 6px;
-  border: 1px solid #232c4f;
-  border-radius: 6px;
-  background: rgba(18, 23, 43, 0.7);
-  margin-bottom: 6px;
-}
-
-.panel-name {
-  flex: 1;
+  line-height: 2.2;
+  text-align: left;
   word-break: break-all;
-}
-
-.role-badge {
-  padding: 3px 5px;
-  border-radius: 4px;
-  font-size: 7px;
-  white-space: nowrap;
-}
-
-.role-admin {
-  color: #ffd60a;
-  border: 1px solid #ffd60a;
-  text-shadow: 0 0 6px rgba(255, 214, 10, 0.6);
-}
-
-.role-player {
-  color: #00e5ff;
-  border: 1px solid #00e5ff;
-}
-
-.panel-self {
-  color: #8892b0;
-  font-size: 7px;
-}
-
-.role-btn {
-  font-family: "Press Start 2P", "Courier New", monospace;
-  font-size: 7px;
-  color: #0b0f1e;
-  background: #39ff88;
-  border: none;
-  border-radius: 4px;
-  padding: 6px 7px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.role-btn:hover { filter: brightness(1.2); box-shadow: 0 0 10px rgba(57, 255, 136, 0.6); }
-.role-btn:active { transform: translateY(1px); }
-
-#admin-count {
-  color: #39ff88;
-}
-
-#admin-message {
-  color: #ff2d95;
-  min-height: 14px;
 }
 
 /* Clickable hit zones on the cabinet art */
@@ -412,25 +291,13 @@ body {
   transition: box-shadow 0.15s ease;
 }
 
-.deck-b:hover::after, .deck-b:active::after {
-  background: #2a6bff;
-  box-shadow: 0 0 16px 4px rgba(42, 107, 255, 0.8);
+.deck-btn:active::after {
+  box-shadow: 0 0 16px 4px;
 }
 
-.deck-c:hover::after, .deck-c:active::after {
-  background: #00e5ff;
-  box-shadow: 0 0 16px 4px rgba(0, 229, 255, 0.8);
-}
-
-.deck-p:hover::after, .deck-p:active::after {
-  background: #ff2d95;
-  box-shadow: 0 0 16px 4px rgba(255, 45, 149, 0.8);
-}
-
-.deck-y:hover::after, .deck-y:active::after {
-  background: #ffd60a;
-  box-shadow: 0 0 16px 4px rgba(255, 214, 10, 0.8);
-}
+.deck-p:active::after { background: #ff2d95; }
+.deck-y:active::after { background: #ffd60a; }
+.deck-c:active::after { background: #00e5ff; }
 
 .joystick-btn {
   position: absolute;
@@ -441,27 +308,11 @@ body {
   background: transparent;
   cursor: pointer;
   padding: 0;
-  transition: transform 0.15s ease;
-}
-
-.joystick-btn:hover {
-  transform: rotate(-8deg);
 }
 
 .joystick-btn:active {
   box-shadow: 0 0 14px 3px rgba(255, 45, 149, 0.7);
   border-radius: 50%;
-}
-
-/* The stick glows green when the secret code is armed. */
-.joystick-btn.primed {
-  border-radius: 50%;
-  box-shadow: 0 0 22px 4px rgba(57, 255, 136, 0.8);
-  animation: primed-pulse 0.9s steps(2) infinite;
-}
-
-@keyframes primed-pulse {
-  50% { box-shadow: 0 0 30px 8px rgba(57, 255, 136, 0.95); }
 }
 
 .system-check {
@@ -513,193 +364,7 @@ body {
   margin-top: 10px;
 }
 
-
-/* Control Room: the recent access attempts log. */
-.log-title {
-  color: #00e5ff;
-  margin: 8px 0 0;
-}
-
-.log-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  box-sizing: border-box;
-  font-family: "Press Start 2P", "Courier New", monospace;
-  font-size: 7px;
-  color: #e6e9f5;
-  padding: 6px;
-  border: 1px solid #232c4f;
-  border-radius: 6px;
-  background: rgba(18, 23, 43, 0.7);
-  margin-bottom: 5px;
-}
-
-.log-who {
-  flex: 1;
-  word-break: break-all;
-}
-
-.log-what {
-  color: #8892b0;
-}
-
-.log-status {
-  white-space: nowrap;
-}
-
-.log-ok {
-  color: #39ff88;
-}
-
-.log-no {
-  color: #ff2d95;
-}
-
-/* Fixes: the starter stylesheet paints every button blue on hover and
-   locks page scrolling. Guard the arcade controls and let the page scroll. */
-body {
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-.deck-btn:hover, .deck-btn:active, .deck-btn:focus,
-.joystick-btn:hover, .joystick-btn:active, .joystick-btn:focus,
-#coin:hover, #coin:active, #coin:focus {
-  background: transparent;
-  outline: none;
-}
-
-.deck-btn:active, .joystick-btn:active {
-  transform: none;
-}
-
-.tab-btn:hover {
-  color: #00e5ff;
-  border-color: #00e5ff;
-  background: transparent;
-}
-
-.deck-btn:focus-visible, .joystick-btn:focus-visible,
-#coin:focus-visible, .tab-btn:focus-visible {
-  outline: 2px solid #00e5ff;
-  outline-offset: 2px;
-}
-
-/* GAME SELECT: the 5 quiz cabinets, styled like a real arcade menu. */
-.cabinet-menu {
-  list-style: none;
-  padding: 0;
-  margin: 2px 0 0;
-  width: 100%;
-}
-
-.cabinet-item {
-  width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: "Press Start 2P", "Courier New", monospace;
-  font-size: 8px;
-  color: #e6e9f5;
-  background: rgba(18, 23, 43, 0.85);
-  border: 2px solid #39406b;
-  border-radius: 6px;
-  padding: 9px;
-  cursor: pointer;
-  margin-bottom: 7px;
-  text-align: left;
-}
-
-/* Guard: the starter stylesheet paints buttons blue on hover. */
-.cabinet-item:hover, .cabinet-item:active, .cabinet-item:focus {
-  background: rgba(18, 23, 43, 0.9);
-  outline: none;
-}
-
-.cabinet-glyph {
-  font-size: 8px;
-  padding: 4px 5px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-.glyph-blue   { color: #2a6bff; border: 1px solid #2a6bff; }
-.glyph-green  { color: #39ff88; border: 1px solid #39ff88; }
-.glyph-cyan   { color: #00e5ff; border: 1px solid #00e5ff; }
-.glyph-pink   { color: #ff2d95; border: 1px solid #ff2d95; }
-.glyph-yellow { color: #ffd60a; border: 1px solid #ffd60a; }
-
-.cabinet-blue:hover   { border-color: #2a6bff; box-shadow: 0 0 12px rgba(42, 107, 255, 0.55); }
-.cabinet-green:hover  { border-color: #39ff88; box-shadow: 0 0 12px rgba(57, 255, 136, 0.55); }
-.cabinet-cyan:hover   { border-color: #00e5ff; box-shadow: 0 0 12px rgba(0, 229, 255, 0.55); }
-.cabinet-pink:hover   { border-color: #ff2d95; box-shadow: 0 0 12px rgba(255, 45, 149, 0.55); }
-.cabinet-yellow:hover { border-color: #ffd60a; box-shadow: 0 0 12px rgba(255, 214, 10, 0.55); }
-
-.cabinet-blue.selected   { border-color: #2a6bff; box-shadow: 0 0 14px rgba(42, 107, 255, 0.7); }
-.cabinet-green.selected  { border-color: #39ff88; box-shadow: 0 0 14px rgba(57, 255, 136, 0.7); }
-.cabinet-cyan.selected   { border-color: #00e5ff; box-shadow: 0 0 14px rgba(0, 229, 255, 0.7); }
-.cabinet-pink.selected   { border-color: #ff2d95; box-shadow: 0 0 14px rgba(255, 45, 149, 0.7); }
-.cabinet-yellow.selected { border-color: #ffd60a; box-shadow: 0 0 14px rgba(255, 214, 10, 0.7); }
-
-.cabinet-item:focus-visible {
-  outline: 2px solid #00e5ff;
-  outline-offset: 2px;
-}
-
-/* ---- THE CAMERA (v10, rebuilt in v11 for the big arcade) ----
-   arcade.js pans and zooms this box like a TV camera for the attract
-   shots, then glides it home before the machine zoom takes over. */
-.camera-scene {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 10px;
-  transform-origin: 0 0;
-  will-change: transform;
-}
-
-/* The "PRESS ENTER" prompt while the camera show runs. */
-.attract-hud {
-  position: absolute;
-  left: 50%;
-  bottom: 30px;
-  transform: translateX(-50%);
-  z-index: 5;
-  background: #ffd60a;
-  border-color: #ffffff;
-  box-shadow: 0 0 18px #ffd60a;
-  color: #0b0f1e;
-  animation: hud-bounce 1.4s ease-in-out infinite;
-}
-
-.attract-hud:hover,
-.attract-hud:active,
-.attract-hud:focus {
-  background: #ffe14d;
-  outline: none;
-}
-
-@keyframes hud-bounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-5px); }
-}
-
-/* 8-bit visitors strolling the carpet (drawn in pixels.js). */
-.walker {
-  position: absolute;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.walker canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-  image-rendering: pixelated;
+@media (max-width: 640px) {
+  .arcade-room.zoomed .machine-wrap { transform: scale(1.6); }
+  .arcade-room.zoomed.form-view .machine-wrap { transform: scale(1.15); }
 }
