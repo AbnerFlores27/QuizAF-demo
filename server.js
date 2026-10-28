@@ -16,6 +16,10 @@ const { loadQuestions } = require("./db/seed-questions");
 
 const app = express();
 
+if (!process.env.SESSION_SECRET) {
+  console.warn("WARNING: SESSION_SECRET is not set in Secrets. Logins still work, but set it before the final version.");
+}
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -29,11 +33,12 @@ app.use(
     secret: process.env.SESSION_SECRET || "dev-secret-change-me",
     resave: false,
     saveUninitialized: false,
+    rolling: true, // using the site refreshes the login
     cookie: {
       httpOnly: true,
       sameSite: "none",
       secure: true,
-      maxAge: 1000 * 60 * 60 * 24, // one day
+      maxAge: 1000 * 60 * 60 * 24 * 7, // one week
     },
   })
 );

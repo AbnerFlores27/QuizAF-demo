@@ -16,7 +16,7 @@ function validateRegistration(input) {
   if (!/^[a-zA-Z0-9_-]{3,20}$/.test(username)) {
     errors.push("Username: 3-20 letters, numbers, _ or -.");
   }
-  if (!/^[^s@]+@[^s@]+.[^s@]+$/.test(email)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     errors.push("Email: please use a valid email address.");
   }
   if (password.length < 8) {
