@@ -1,4 +1,4 @@
--- Abner's Quiz Site - Phase 1 database.
+-- California Sports Quiz - Phase 1 database.
 -- users: every account. role is either 'player' or 'admin'.
 -- "session": login sessions (connect-pg-simple owns this table).
 
@@ -37,3 +37,16 @@ CREATE TABLE IF NOT EXISTS questions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_questions_quiz ON questions (quiz_id);
+
+-- Phase 3: one row for every FINISHED quiz (personal history).
+-- Unfinished quizzes never get a row so they never count.
+CREATE TABLE IF NOT EXISTS attempts (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  quiz_id INTEGER NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
+  score INTEGER NOT NULL,
+  question_count INTEGER NOT NULL,
+  completed_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts (user_id);

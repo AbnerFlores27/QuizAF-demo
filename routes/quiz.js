@@ -1,5 +1,6 @@
 // Phase 2: the quizzes. The SERVER grades everything - the pages
 // never see a correct answer until after the quiz is submitted.
+// Phase 3: every FINISHED quiz is also saved to the attempts table.
 
 const express = require("express");
 const router = express.Router();
@@ -41,6 +42,21 @@ router.get("/", requireAuth, async (req, res) => {
     res.json({ quizzes: quizzes.rows });
   } catch (err) {
     console.error("Quiz list failed: " + err.message);
+    res.status(500).json({ error: "Something went wrong. Try again." });
+  }
+});
+
+// Phase 3: the logged-in player's own history. Only their own
+// attempts are ever returned - one player can never see another's.
+router.get("/history", requireAuth, async (req, res) => {
+  try {
+    const rows = await pool.query(
+      "SELECT attempts.id, quizzes.name AS quiz_name, attempts.score, attempts.question_count, attempts.completed_at FROM attempts JOIN quizzes ON quizzes.id = attempts.quiz_id WHERE attempts.user_id = $1 ORDER BY attempts.completed_at DESC, attempts.id DESC",
+      [req.session.userId]
+    );
+    res.json({ attempts: rows.rows });
+  } catch (err) {
+    console.error("History failed: " + err.message);
     res.status(500).json({ error: "Something went wrong. Try again." });
   }
 });
@@ -93,6 +109,12 @@ router.post("/:id/submit", requireAuth, async (req, res) => {
     if (!result) {
       return res.status(400).json({ error: "That submission has invalid answers." });
     }
+    // Phase 3: save this FINISHED attempt. Only a submitted quiz gets a
+    // row (unfinished never counts) and every retry is a new record.
+    await pool.query(
+      "INSERT INTO attempts (user_id, quiz_id, score, question_count) VALUES ($1, $2, $3, $4)",
+      [req.session.userId, quizId, result.score, result.total]
+    );
     res.json(result);
   } catch (err) {
     console.error("Submit failed: " + err.message);

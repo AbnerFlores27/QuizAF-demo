@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My history - California Sports Quiz</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="/">California Sports Quiz</a>
+    <div>
+      <a href="/quizzes.html">Quizzes</a>
+      <a href="/history.html">My history</a>
+      <span id="nav-auth">Loading...</span>
+    </div>
+  </nav>
+  <main>
+    <div class="card">
+      <h1>My quiz history</h1>
+      <p>Every quiz you FINISH is saved here. Only you can see this list.</p>
+      <p id="status">Loading...</p>
+      <table id="history-table" class="hidden">
+        <thead><tr><th>Quiz</th><th>Score</th><th>Percentage</th><th>Date</th></tr></thead>
+        <tbody id="history-rows"></tbody>
+      </table>
+    </div>
+  </main>
+  <script src="/app.js"></script>
+  <script>
+    fetch("/api/quizzes/history")
+      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+      .then(function (result) {
+        var status = document.getElementById("status");
+        if (!result.ok) {
+          status.textContent = result.data.error || "Could not load your history.";
+          return;
+        }
+        if (result.data.attempts.length === 0) {
+          status.textContent = "No finished quizzes yet. Take one!";
+          return;
+        }
+        status.classList.add("hidden");
+        var rows = document.getElementById("history-rows");
+        result.data.attempts.forEach(function (a) {
+          var tr = document.createElement("tr");
+          var quizTd = document.createElement("td");
+          quizTd.textContent = a.quiz_name;
+          var scoreTd = document.createElement("td");
+          scoreTd.textContent = a.score + " / " + a.question_count;
+          var pctTd = document.createElement("td");
+          pctTd.textContent = Math.round((a.score / a.question_count) * 100) + "%";
+          var dateTd = document.createElement("td");
+          dateTd.textContent = new Date(a.completed_at).toLocaleString();
+          tr.appendChild(quizTd);
+          tr.appendChild(scoreTd);
+          tr.appendChild(pctTd);
+          tr.appendChild(dateTd);
+          rows.appendChild(tr);
+        });
+        document.getElementById("history-table").classList.remove("hidden");
+      });
+  </script>
+</body>
+</html>
