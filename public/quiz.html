@@ -87,14 +87,41 @@
                 return;
               }
               results.className = "results " + (sub.data.percentage >= 70 ? "good" : "bad");
-              var lines = [];
-              lines.push("Score: " + sub.data.score + " / " + sub.data.total + " — " + sub.data.percentage + "%");
-              lines.push("Saved to your history.");
+              function choiceText(q, letter) {
+                if (letter === "A") return q.choice_a;
+                if (letter === "B") return q.choice_b;
+                if (letter === "C") return q.choice_c;
+                if (letter === "D") return q.choice_d;
+                return "";
+              }
+              var scoreLine = document.createElement("p");
+              scoreLine.textContent = "Score: " + sub.data.score + " / " + sub.data.total + " — " + sub.data.percentage + "%";
+              var savedLine = document.createElement("p");
+              savedLine.textContent = "Saved to your history.";
+              results.appendChild(scoreLine);
+              results.appendChild(savedLine);
+              // Review: the server sends marks back in the same order as
+              // the questions on the page, so mark i matches question i.
               sub.data.marks.forEach(function (m, i) {
-                lines.push((i + 1) + ". " + (m.correct ? "Correct" : "Wrong"));
+                var q = result.data.questions[i];
+                var item = document.createElement("div");
+                item.className = "review-item";
+                var question = document.createElement("p");
+                question.className = "review-question";
+                question.textContent = (i + 1) + ". " + q.question_text;
+                var verdict = document.createElement("p");
+                verdict.className = m.correct ? "review-ok" : "review-no";
+                if (m.correct) {
+                  verdict.textContent = "Correct! You picked " + m.picked + " (" + choiceText(q, m.picked) + ")";
+                } else if (!m.picked) {
+                  verdict.textContent = "No answer. The correct answer was " + m.answer + " (" + choiceText(q, m.answer) + ")";
+                } else {
+                  verdict.textContent = "Wrong. You picked " + m.picked + " (" + choiceText(q, m.picked) + "). The correct answer was " + m.answer + " (" + choiceText(q, m.answer) + ")";
+                }
+                item.appendChild(question);
+                item.appendChild(verdict);
+                results.appendChild(item);
               });
-              results.textContent = lines.join("\n");
-              results.style.whiteSpace = "pre-line";
               var retry = document.createElement("button");
               retry.type = "button";
               retry.textContent = "Retry";
