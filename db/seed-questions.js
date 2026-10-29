@@ -1,4 +1,4 @@
-// Phase 2: loads the 50 California sports questions from templates/questions.csv
+// Phase 2: loads the 50 California sports questions (all about California teams) from templates/questions.csv
 // into the quizzes + questions tables. Safe to run again at any time.
 
 const fs = require("fs");
@@ -10,7 +10,7 @@ const QUIZ_NAMES = {
   2: "Football",
   3: "Soccer",
   4: "Baseball",
-  5: "Olympics",
+  5: "Hockey",
 };
 
 // Parse + validate the CSV. Returns { rows, errors }.
