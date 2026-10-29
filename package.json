@@ -1,7 +1,7 @@
 {
-  "name": "abners-quiz-site",
-  "version": "2.0.0",
-  "description": "Abner's quiz site - a clean class project. Phase 1: accounts and login.",
+  "name": "california-sports-quiz",
+  "version": "3.0.0",
+  "description": "California Sports Quiz - a clean class project. Phase 1: accounts and login.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
