@@ -58,12 +58,17 @@ async function loadQuestions(poolArg) {
   const client = await poolArg.connect();
   try {
     await client.query("BEGIN");
+    // Stable ids: questions always get ids 1-50 in the same CSV order.
+    // Before this fix, the id counter kept growing on every server
+    // restart, so a quiz page left open from before a restart sent the
+    // server OLD ids and the server called the submission invalid.
+    // RESTART IDENTITY resets the counter back to 1 every time.
+    await client.query("TRUNCATE questions RESTART IDENTITY");
     for (const id of Object.keys(QUIZ_NAMES)) {
       await client.query(
         "INSERT INTO quizzes (id, name) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name",
         [Number(id), QUIZ_NAMES[id]]
       );
-      await client.query("DELETE FROM questions WHERE quiz_id = $1", [Number(id)]);
       const quizRows = parsed.rows.filter(function (r) { return r.quizId === Number(id); });
       for (const r of quizRows) {
         await client.query(

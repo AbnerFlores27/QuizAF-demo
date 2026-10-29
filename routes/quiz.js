@@ -10,6 +10,8 @@ const { requireAuth } = require("../middleware/auth");
 // Grade one submission. rows = [{id, correct_answer}], answers = {"<id>": "A".."D"}.
 // Unanswered questions count as wrong. Returns null when the
 // submission itself is invalid (a foreign question id or a bad letter).
+// Each mark also carries what the player picked and the correct letter,
+// so the page can show a full review after the quiz is graded.
 function gradeSubmission(rows, answers) {
   const ids = new Set(rows.map(function (r) { return r.id; }));
   const keys = Object.keys(answers);
@@ -22,9 +24,10 @@ function gradeSubmission(rows, answers) {
   let score = 0;
   const marks = [];
   for (let i = 0; i < rows.length; i++) {
-    const ok = answers[String(rows[i].id)] === rows[i].correct_answer;
+    const picked = answers[String(rows[i].id)] || null;
+    const ok = picked === rows[i].correct_answer;
     if (ok) score++;
-    marks.push({ id: rows[i].id, correct: ok });
+    marks.push({ id: rows[i].id, correct: ok, picked: picked, answer: rows[i].correct_answer });
   }
   const total = rows.length;
   return {
