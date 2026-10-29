@@ -10,22 +10,23 @@ const { requireAuth } = require("../middleware/auth");
 // Grade one submission. rows = [{id, correct_answer}], answers = {"<id>": "A".."D"}.
 // Unanswered questions count as wrong. Returns null when the
 // submission itself is invalid (a foreign question id or a bad letter).
-// Each mark also carries what the player picked and the correct letter,
-// so the page can show a full review after the quiz is graded.
+// IMPORTANT: ids are compared as TEXT on purpose. Postgres hands back
+// BIGSERIAL ids as strings ("11") and SERIAL ids as numbers (11),
+// depending on which schema built the table. Comparing everything as
+// text makes grading work on BOTH kinds of database.
 function gradeSubmission(rows, answers) {
-  const ids = new Set(rows.map(function (r) { return r.id; }));
+  const ids = new Set(rows.map(function (r) { return String(r.id); }));
   const keys = Object.keys(answers);
   for (let i = 0; i < keys.length; i++) {
-    const id = Number(keys[i]);
     const letter = answers[keys[i]];
-    if (!ids.has(id)) return null;
+    if (!ids.has(keys[i])) return null;
     if (!/^[ABCD]$/.test(letter)) return null;
   }
   let score = 0;
   const marks = [];
   for (let i = 0; i < rows.length; i++) {
     const picked = answers[String(rows[i].id)] || null;
-    const ok = picked === rows[i].correct_answer;
+    const ok = picked === String(rows[i].correct_answer);
     if (ok) score++;
     marks.push({ id: rows[i].id, correct: ok, picked: picked, answer: rows[i].correct_answer });
   }
@@ -110,9 +111,13 @@ router.post("/:id/submit", requireAuth, async (req, res) => {
     }
     const result = gradeSubmission(rows.rows, answers);
     if (!result) {
-      // The most common cause: a quiz page left open from before the
-      // last server restart, still holding old question ids.
-      return res.status(400).json({ error: "That submission has invalid answers. This usually means the page is old - refresh the page (Ctrl + Shift + R) and take the quiz again." });
+      // Log the exact mismatch so it can be diagnosed if it ever happens.
+      const sent = Object.keys(answers).slice(0, 10).join(", ");
+      const expected = rows.rows.slice(0, 10).map(function (r) { return r.id; }).join(", ");
+      console.error("Rejected quiz submission. Page sent ids: [" + sent + "]. Server has ids: [" + expected + "].");
+      return res.status(400).json({
+        error: "That submission has invalid answers. Refresh the page (Ctrl + Shift + R) and take the quiz again. If it still happens, screenshot this: sent [" + sent + "] / server [" + expected + "]."
+      });
     }
     // Phase 3: save this FINISHED attempt. Only a submitted quiz gets a
     // row (unfinished never counts) and every retry is a new record.
