@@ -1,6 +1,6 @@
-/* California Sports Quiz - sporty template look.
-   CSS-only redesign: no HTML or logic changes, every page keeps
-   working exactly the same - it just looks better now. */
+/* California Sports Quiz - sporty template, polish pass.
+   Same background, same palette - just richer details.
+   CSS-only: no HTML or logic changes, everything keeps working. */
 @import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap");
 
 * { box-sizing: border-box; }
@@ -26,19 +26,28 @@ a:hover { text-decoration: underline; }
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px 16px;
-  padding: 14px 24px;
-  background: #122b4a;
+  gap: 8px 12px;
+  padding: 12px 24px;
+  background: rgba(18, 43, 74, 0.94);
+  backdrop-filter: blur(6px);
   border-bottom: 3px solid #f5a524;
-  box-shadow: 0 2px 10px rgba(18, 43, 74, 0.35);
+  box-shadow: 0 2px 12px rgba(18, 43, 74, 0.4);
 }
-.topnav a { color: #e8edf5; text-decoration: none; margin-left: 12px; font-weight: 600; }
-.topnav a:hover { color: #ffd166; text-decoration: none; }
-.brand { font-weight: 800; font-size: 19px; letter-spacing: 0.3px; margin-left: 0; }
+.topnav a {
+  color: #e8edf5;
+  text-decoration: none;
+  margin-left: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.topnav a:hover { background: rgba(255, 209, 102, 0.16); color: #ffd166; text-decoration: none; }
+.brand { font-weight: 800; font-size: 19px; letter-spacing: 0.3px; margin-left: 0; padding-left: 0; }
 .brand::before { content: "🏆 "; }
-.topnav span { color: #b8c4d6; margin-left: 12px; font-weight: 600; }
+.topnav span { color: #b8c4d6; margin-left: 10px; font-weight: 600; }
 .topnav button {
-  margin: 0 0 0 12px;
+  margin: 0 0 0 10px;
   padding: 6px 14px;
   background: transparent;
   color: #ffd166;
@@ -47,6 +56,7 @@ a:hover { text-decoration: underline; }
   font-weight: 800;
   font-size: 13px;
   cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
 }
 .topnav button:hover { background: #ffd166; color: #122b4a; }
 
@@ -56,9 +66,14 @@ main { max-width: 760px; margin: 40px auto; padding: 0 16px; }
   background: #ffffff;
   border: 1px solid #e6e2d8;
   border-top: 5px solid #f5a524;
-  border-radius: 14px;
-  padding: 26px 30px;
-  box-shadow: 0 10px 30px rgba(22, 36, 58, 0.08);
+  border-radius: 16px;
+  padding: 28px 32px;
+  box-shadow: 0 14px 40px rgba(22, 36, 58, 0.10);
+  animation: rise 0.35s ease both;
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
 }
 h1 {
   margin: 0 0 10px;
@@ -70,24 +85,26 @@ h1 {
 h1::after {
   content: "";
   display: block;
-  width: 56px;
-  height: 5px;
-  background: #f5a524;
-  border-radius: 3px;
-  margin-top: 6px;
+  width: 72px;
+  height: 6px;
+  background: linear-gradient(90deg, #f5a524, #ffd166);
+  border-radius: 4px;
+  margin-top: 8px;
 }
+#status { color: #5a6b82; }
 
 /* ---------- forms ---------- */
 label { display: block; margin-top: 14px; font-weight: 700; color: #16243a; }
 input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 11px 13px;
   margin-top: 4px;
   border: 2px solid #d7dbe3;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 15px;
   font-family: inherit;
   background: #fbfcfe;
+  transition: border-color 0.12s ease, background 0.12s ease;
 }
 input:focus { outline: none; border-color: #f5a524; background: #ffffff; }
 /* The little answer circles stay SMALL and sit next to the text
@@ -96,16 +113,23 @@ input[type="radio"] { width: auto; margin: 0; accent-color: #f5a524; }
 button {
   margin-top: 18px;
   padding: 11px 22px;
-  background: linear-gradient(180deg, #1a3a63, #122b4a);
-  color: #ffffff;
+  background: linear-gradient(180deg, #ffd166, #f5a524);
+  color: #122b4a;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.3px;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(245, 165, 36, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, color 0.12s ease;
 }
-button:hover { background: linear-gradient(180deg, #f5a524, #e0940f); color: #122b4a; }
+button:hover {
+  background: linear-gradient(180deg, #1a3a63, #122b4a);
+  color: #ffd166;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(18, 43, 74, 0.3);
+}
 .error {
   color: #8a1f1f;
   background: #fdecec;
@@ -116,49 +140,57 @@ button:hover { background: linear-gradient(180deg, #f5a524, #e0940f); color: #12
 .hidden { display: none; }
 
 /* ---------- tables (admin + history) ---------- */
-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 15px; }
-th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #e6e2d8; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 12px; font-size: 15px; }
+th, td { text-align: left; padding: 10px 12px; }
 th { background: #122b4a; color: #ffffff; font-weight: 700; }
-tbody tr:nth-child(even) { background: #f7f5ef; }
+th:first-child { border-radius: 10px 0 0 0; }
+th:last-child { border-radius: 0 10px 0 0; }
+tbody td { border-bottom: 1px solid #e6e2d8; }
+tbody tr:nth-child(even) td { background: #f7f5ef; }
+tbody tr:last-child td:first-child { border-radius: 0 0 0 10px; }
+tbody tr:last-child td:last-child { border-radius: 0 0 10px 0; }
 
 /* ---------- quiz list ---------- */
-#quiz-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+#quiz-list { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
 .quiz-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 14px;
+  padding: 16px 18px;
   border: 2px solid #e2e0d6;
-  border-left: 8px solid #122b4a;
-  border-radius: 10px;
-  background: #fbfaf6;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffdf7, #fbf4e6);
   color: #16243a;
   text-decoration: none;
   font-weight: 800;
-  font-size: 17px;
+  font-size: 18px;
   margin: 0;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 .quiz-link:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(22, 36, 58, 0.14);
+  box-shadow: 0 10px 22px rgba(22, 36, 58, 0.16);
   text-decoration: none;
   color: #16243a;
-  border-left-color: #f5a524;
 }
-.quiz-link::after { content: "▶"; margin-left: auto; color: #f5a524; font-size: 14px; }
-
-/* Emoji + accent color per sport (1 Basketball, 2 Football, 3 Soccer, 4 Baseball, 5 Hockey) */
-.quiz-link:nth-child(1) { border-left-color: #e8722b; }
-.quiz-link:nth-child(1)::before { content: "🏀"; font-size: 22px; }
-.quiz-link:nth-child(2) { border-left-color: #2f7d32; }
-.quiz-link:nth-child(2)::before { content: "🏈"; font-size: 22px; }
-.quiz-link:nth-child(3) { border-left-color: #2563eb; }
-.quiz-link:nth-child(3)::before { content: "⚽"; font-size: 22px; }
-.quiz-link:nth-child(4) { border-left-color: #d13c3c; }
-.quiz-link:nth-child(4)::before { content: "⚾"; font-size: 22px; }
-.quiz-link:nth-child(5) { border-left-color: #6b4226; }
-.quiz-link:nth-child(5)::before { content: "🏒"; font-size: 22px; }
+.quiz-link::after { content: "▶"; margin-left: auto; color: #f5a524; font-size: 15px; }
+/* Each quiz gets an emoji badge in a soft colored circle */
+.quiz-link::before {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  font-size: 23px;
+  margin-right: 2px;
+}
+.quiz-link:nth-child(1)::before { content: "🏀"; background: #fdeadd; }
+.quiz-link:nth-child(2)::before { content: "🏈"; background: #e3f2e5; }
+.quiz-link:nth-child(3)::before { content: "⚽"; background: #e3ecfd; }
+.quiz-link:nth-child(4)::before { content: "⚾"; background: #fde3e3; }
+.quiz-link:nth-child(5)::before { content: "🏒"; background: #f0e4d8; }
 
 /* ---------- quiz page ---------- */
 .question { margin-top: 22px; }
@@ -168,9 +200,9 @@ tbody tr:nth-child(even) { background: #f7f5ef; }
   display: flex;
   align-items: center;
   margin-top: 6px;
-  padding: 9px 12px;
+  padding: 10px 14px;
   border: 2px solid #e2e0d6;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #fbfaf6;
   font-weight: 600;
   cursor: pointer;
@@ -180,7 +212,7 @@ tbody tr:nth-child(even) { background: #f7f5ef; }
 .choice:has(input:checked) { border-color: #122b4a; background: #eef3fa; }
 
 /* ---------- results + review ---------- */
-.results { margin-top: 20px; padding: 14px 16px; border-radius: 10px; border: 2px solid transparent; }
+.results { margin-top: 20px; padding: 14px 16px; border-radius: 12px; border: 2px solid transparent; }
 .results.good { background: #e9f7ee; border-color: #b7e2c6; color: #14532d; }
 .results.bad { background: #fdecec; border-color: #f2c1c1; color: #7f1d1d; }
 .results p { margin: 6px 0; font-weight: 700; }
@@ -193,7 +225,7 @@ tbody tr:nth-child(even) { background: #f7f5ef; }
 /* ---------- small screens ---------- */
 @media (max-width: 600px) {
   .topnav { padding: 12px 16px; }
-  .topnav a, .topnav span { margin-left: 8px; font-size: 14px; }
-  .card { padding: 20px 18px; }
+  .topnav a, .topnav span { margin-left: 6px; font-size: 14px; }
+  .card { padding: 22px 18px; }
   h1 { font-size: 23px; }
 }
