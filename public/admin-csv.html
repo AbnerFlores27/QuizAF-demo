@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin - CSV upload - California Sports Quiz</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="/">California Sports Quiz</a>
+    <div>
+      <a href="/quizzes.html">Quizzes</a>
+      <a href="/leaderboard.html">Leaderboard</a>
+      <a href="/history.html">My history</a>
+      <span id="nav-auth">Loading...</span>
+    </div>
+  </nav>
+  <main>
+    <div class="card">
+      <h1>Admin - CSV upload</h1>
+      <p class="caption">Pick a CSV file (or paste its text), press Preview, and only import when
+      everything is valid. Heads up: importing REPLACES all the questions.</p>
+      <label for="file">CSV file</label>
+      <input type="file" id="file" accept=".csv,text/csv">
+      <label for="csv">...or paste the CSV text here</label>
+      <textarea id="csv" rows="8" placeholder="quiz_id,question,a,b,c,d,correct_answer"></textarea>
+      <button type="button" id="preview-btn">Preview</button>
+      <p id="error" class="error hidden"></p>
+      <div id="preview" class="hidden">
+        <p id="preview-summary" class="caption"></p>
+        <p id="preview-errors" class="row-error"></p>
+        <table id="preview-table" class="hidden">
+          <thead>
+            <tr><th>Quiz</th><th>Question</th><th>A</th><th>B</th><th>C</th><th>D</th><th>Answer</th></tr>
+          </thead>
+          <tbody id="preview-rows"></tbody>
+        </table>
+        <button type="button" id="import-btn" class="hidden">Import (replaces all questions)</button>
+      </div>
+      <p id="success" class="success hidden"></p>
+    </div>
+  </main>
+  <script src="/app.js"></script>
+  <script>
+    var csvText = "";
+
+    function fetchJson(url, opts) {
+      opts = opts || {};
+      return fetch(url, opts).then(function (r) {
+        return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+      });
+    }
+
+    function showError(msg) {
+      var box = document.getElementById("error");
+      if (msg) {
+        box.textContent = msg;
+        box.classList.remove("hidden");
+      } else {
+        box.classList.add("hidden");
+      }
+    }
+
+    function readInput() {
+      var fileInput = document.getElementById("file");
+      if (fileInput.files.length > 0) {
+        return new Promise(function (resolve) {
+          var reader = new FileReader();
+          reader.onload = function () { resolve(String(reader.result)); };
+          reader.readAsText(fileInput.files[0]);
+        });
+      }
+      return Promise.resolve(document.getElementById("csv").value);
+    }
+
+    document.getElementById("preview-btn").addEventListener("click", function () {
+      showError("");
+      document.getElementById("success").classList.add("hidden");
+      document.getElementById("import-btn").classList.add("hidden");
+      readInput().then(function (text) {
+        csvText = text;
+        return fetchJson("/api/admin/questions/preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ csv: csvText }),
+        });
+      }).then(function (result) {
+        if (!result.ok) {
+          showError(result.data.error || "Could not preview the CSV.");
+          return;
+        }
+        var data = result.data;
+        document.getElementById("preview").classList.remove("hidden");
+        document.getElementById("preview-summary").textContent =
+          data.rows + " valid questions found." +
+          (data.errors.length ? "" : " No errors - you can import.");
+        document.getElementById("preview-errors").textContent = data.errors.join(" ");
+        var rowsBody = document.getElementById("preview-rows");
+        rowsBody.innerHTML = "";
+        data.preview.forEach(function (r) {
+          var tr = document.createElement("tr");
+          var cells = [String(r.quizId), r.question, r.a, r.b, r.c, r.d, r.answer];
+          cells.forEach(function (cellText) {
+            var td = document.createElement("td");
+            td.textContent = cellText;
+            tr.appendChild(td);
+          });
+          rowsBody.appendChild(tr);
+        });
+        if (data.preview.length > 0) {
+          document.getElementById("preview-table").classList.remove("hidden");
+        }
+        if (data.rows > 0 && data.errors.length === 0) {
+          document.getElementById("import-btn").classList.remove("hidden");
+        }
+      });
+    });
+
+    document.getElementById("import-btn").addEventListener("click", function () {
+      showError("");
+      fetchJson("/api/admin/questions/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ csv: csvText }),
+      }).then(function (result) {
+        if (!result.ok) {
+          showError(result.data.error || "Could not import the CSV.");
+          return;
+        }
+        document.getElementById("preview").classList.add("hidden");
+        var success = document.getElementById("success");
+        success.textContent = "Imported " + result.data.imported + " questions. They are live right now.";
+        success.classList.remove("hidden");
+      });
+    });
+  </script>
+</body>
+</html>

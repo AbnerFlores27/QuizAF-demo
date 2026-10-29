@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin - question editor - California Sports Quiz</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="/">California Sports Quiz</a>
+    <div>
+      <a href="/quizzes.html">Quizzes</a>
+      <a href="/leaderboard.html">Leaderboard</a>
+      <a href="/history.html">My history</a>
+      <span id="nav-auth">Loading...</span>
+    </div>
+  </nav>
+  <main>
+    <div class="card">
+      <h1>Admin - question editor</h1>
+      <p class="caption">Edit or add questions. Changes are saved in the database and survive restarts.</p>
+      <div id="tabs" class="tabs"></div>
+      <p id="status">Loading...</p>
+      <p id="error" class="error hidden"></p>
+
+      <form id="edit-form" class="hidden">
+        <h2 id="edit-title">Edit question</h2>
+        <input type="hidden" id="edit-id">
+        <label>Quiz
+          <select id="edit-quiz">
+            <option value="1">Basketball</option>
+            <option value="2">Football</option>
+            <option value="3">Soccer</option>
+            <option value="4">Baseball</option>
+            <option value="5">Hockey</option>
+          </select>
+        </label>
+        <label>Question <input id="edit-text" maxlength="300"></label>
+        <label>Choice A <input id="edit-a" maxlength="150"></label>
+        <label>Choice B <input id="edit-b" maxlength="150"></label>
+        <label>Choice C <input id="edit-c" maxlength="150"></label>
+        <label>Choice D <input id="edit-d" maxlength="150"></label>
+        <label>Correct answer
+          <select id="edit-answer">
+            <option>A</option><option>B</option><option>C</option><option>D</option>
+          </select>
+        </label>
+        <button type="submit">Save changes</button>
+        <button type="button" id="edit-cancel" class="small-btn">Cancel</button>
+      </form>
+
+      <h2>Add a question</h2>
+      <form id="add-form">
+        <label>Quiz
+          <select id="add-quiz">
+            <option value="1">Basketball</option>
+            <option value="2">Football</option>
+            <option value="3">Soccer</option>
+            <option value="4">Baseball</option>
+            <option value="5">Hockey</option>
+          </select>
+        </label>
+        <label>Question <input id="add-text" maxlength="300" required></label>
+        <label>Choice A <input id="add-a" maxlength="150" required></label>
+        <label>Choice B <input id="add-b" maxlength="150" required></label>
+        <label>Choice C <input id="add-c" maxlength="150" required></label>
+        <label>Choice D <input id="add-d" maxlength="150" required></label>
+        <label>Correct answer
+          <select id="add-answer">
+            <option>A</option><option>B</option><option>C</option><option>D</option>
+          </select>
+        </label>
+        <button type="submit">Add question</button>
+      </form>
+
+      <h2>All questions</h2>
+      <div id="questions"></div>
+    </div>
+  </main>
+  <script src="/app.js"></script>
+  <script>
+    var all = [];
+    var currentQuiz = "all";
+
+    function fetchJson(url, opts) {
+      opts = opts || {};
+      return fetch(url, opts).then(function (r) {
+        return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+      });
+    }
+
+    function showError(msg) {
+      var box = document.getElementById("error");
+      if (msg) {
+        box.textContent = msg;
+        box.classList.remove("hidden");
+      } else {
+        box.classList.add("hidden");
+      }
+    }
+
+    function setStatus(text) {
+      var status = document.getElementById("status");
+      if (text) {
+        status.textContent = text;
+        status.classList.remove("hidden");
+      } else {
+        status.classList.add("hidden");
+      }
+    }
+
+    function render() {
+      var holder = document.getElementById("questions");
+      holder.innerHTML = "";
+      var shown = all.filter(function (q) {
+        return currentQuiz === "all" || q.quiz_id === Number(currentQuiz);
+      });
+      if (shown.length === 0) {
+        setStatus("No questions here yet.");
+        return;
+      }
+      setStatus("");
+      shown.forEach(function (q) {
+        var item = document.createElement("div");
+        item.className = "q-item";
+        var text = document.createElement("p");
+        text.className = "q-text";
+        text.textContent = "#" + q.id + " " + q.quiz_name + ": " + q.question_text;
+        item.appendChild(text);
+        ["A", "B", "C", "D"].forEach(function (L) {
+          var line = document.createElement("p");
+          line.textContent = L + ". " + q["choice_" + L.toLowerCase()];
+          if (q.correct_answer === L) {
+            line.className = "q-correct";
+            line.textContent = line.textContent + " (correct)";
+          }
+          item.appendChild(line);
+        });
+        var editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "small-btn";
+        editBtn.textContent = "Edit";
+        editBtn.addEventListener("click", function () { startEdit(q); });
+        item.appendChild(editBtn);
+        holder.appendChild(item);
+      });
+    }
+
+    function startEdit(q) {
+      document.getElementById("edit-id").value = q.id;
+      document.getElementById("edit-quiz").value = String(q.quiz_id);
+      document.getElementById("edit-text").value = q.question_text;
+      document.getElementById("edit-a").value = q.choice_a;
+      document.getElementById("edit-b").value = q.choice_b;
+      document.getElementById("edit-c").value = q.choice_c;
+      document.getElementById("edit-d").value = q.choice_d;
+      document.getElementById("edit-answer").value = q.correct_answer;
+      document.getElementById("edit-title").textContent = "Edit question #" + q.id;
+      document.getElementById("edit-form").classList.remove("hidden");
+      window.scrollTo(0, 0);
+    }
+
+    function selectQuiz(value) {
+      currentQuiz = value;
+      var buttons = document.querySelectorAll("#tabs button");
+      for (var i = 0; i < buttons.length; i++) {
+        buttons[i].classList.toggle("active", buttons[i].getAttribute("data-quiz") === value);
+      }
+      render();
+    }
+
+    document.getElementById("edit-cancel").addEventListener("click", function () {
+      document.getElementById("edit-form").classList.add("hidden");
+    });
+
+    document.getElementById("edit-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      showError("");
+      var id = document.getElementById("edit-id").value;
+      fetchJson("/api/admin/questions/" + id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quiz_id: Number(document.getElementById("edit-quiz").value),
+          question_text: document.getElementById("edit-text").value,
+          choice_a: document.getElementById("edit-a").value,
+          choice_b: document.getElementById("edit-b").value,
+          choice_c: document.getElementById("edit-c").value,
+          choice_d: document.getElementById("edit-d").value,
+          correct_answer: document.getElementById("edit-answer").value,
+        }),
+      }).then(function (result) {
+        if (!result.ok) {
+          showError(result.data.error || "Could not save the question.");
+          return;
+        }
+        document.getElementById("edit-form").classList.add("hidden");
+        refresh();
+      });
+    });
+
+    document.getElementById("add-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      showError("");
+      fetchJson("/api/admin/questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quiz_id: Number(document.getElementById("add-quiz").value),
+          question_text: document.getElementById("add-text").value,
+          choice_a: document.getElementById("add-a").value,
+          choice_b: document.getElementById("add-b").value,
+          choice_c: document.getElementById("add-c").value,
+          choice_d: document.getElementById("add-d").value,
+          correct_answer: document.getElementById("add-answer").value,
+        }),
+      }).then(function (result) {
+        if (!result.ok) {
+          showError(result.data.error || "Could not add the question.");
+          return;
+        }
+        document.getElementById("add-form").reset();
+        refresh();
+      });
+    });
+
+    function refresh() {
+      setStatus("Loading...");
+      fetchJson("/api/admin/questions").then(function (result) {
+        if (!result.ok) {
+          setStatus(result.data.error || "Could not load the questions.");
+          return;
+        }
+        all = result.data.questions;
+        render();
+      });
+    }
+
+    var tabs = document.getElementById("tabs");
+    ["all", "1", "2", "3", "4", "5"].forEach(function (value) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.setAttribute("data-quiz", value);
+      btn.textContent = value === "all" ? "All" : ["", "Basketball", "Football", "Soccer", "Baseball", "Hockey"][Number(value)];
+      btn.addEventListener("click", function () { selectQuiz(value); });
+      tabs.appendChild(btn);
+    });
+
+    refresh();
+  </script>
+</body>
+</html>

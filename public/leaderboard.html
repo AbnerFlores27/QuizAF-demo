@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leaderboard - California Sports Quiz</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="/">California Sports Quiz</a>
+    <div>
+      <a href="/quizzes.html">Quizzes</a>
+      <a href="/leaderboard.html">Leaderboard</a>
+      <a href="/history.html">My history</a>
+      <span id="nav-auth">Loading...</span>
+    </div>
+  </nav>
+  <main>
+    <div class="card">
+      <h1>Leaderboard</h1>
+      <p id="rule" class="caption"></p>
+      <div id="tabs" class="tabs"></div>
+      <p id="status">Loading...</p>
+      <table id="board-table" class="hidden">
+        <thead>
+          <tr><th>Rank</th><th>Player</th><th id="value-head">Finished quizzes</th></tr>
+        </thead>
+        <tbody id="board-rows"></tbody>
+      </table>
+    </div>
+  </main>
+  <script src="/app.js"></script>
+  <script>
+    var me = null;
+
+    function fetchJson(url) {
+      return fetch(url).then(function (r) {
+        return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+      });
+    }
+
+    function setStatus(text) {
+      var status = document.getElementById("status");
+      if (text) {
+        status.textContent = text;
+        status.classList.remove("hidden");
+      } else {
+        status.classList.add("hidden");
+      }
+    }
+
+    function showBoard(result, isOverall) {
+      document.getElementById("board-rows").innerHTML = "";
+      if (!result.ok) {
+        setStatus(result.data.error || "Could not load the leaderboard.");
+        return;
+      }
+      var board = result.data.board;
+      document.getElementById("rule").textContent = result.data.rule;
+      document.getElementById("value-head").textContent = isOverall ? "Finished quizzes" : "Best score";
+      if (board.length === 0) {
+        setStatus("Nobody has finished this yet. Be the first!");
+        return;
+      }
+      setStatus("");
+      board.forEach(function (row, idx) {
+        var value = isOverall
+          ? String(row.finished)
+          : row.best_score + " / " + row.question_count + " (" + row.tries + (row.tries === 1 ? " try)" : " tries)");
+        var isMe = me !== null && row.username === me;
+        var tr = document.createElement("tr");
+        if (isMe) tr.className = "me-row";
+        var rankTd = document.createElement("td");
+        rankTd.textContent = isOverall ? row.rank : idx + 1;
+        var nameTd = document.createElement("td");
+        nameTd.textContent = row.username;
+        var valTd = document.createElement("td");
+        valTd.textContent = value;
+        tr.appendChild(rankTd);
+        tr.appendChild(nameTd);
+        tr.appendChild(valTd);
+        document.getElementById("board-rows").appendChild(tr);
+      });
+      document.getElementById("board-table").classList.remove("hidden");
+    }
+
+    function selectTab(tabId) {
+      var buttons = document.querySelectorAll("#tabs button");
+      for (var i = 0; i < buttons.length; i++) {
+        buttons[i].classList.toggle("active", buttons[i].getAttribute("data-tab") === String(tabId));
+      }
+      if (tabId === "overall") {
+        fetchJson("/api/leaderboard/overall").then(function (result) { showBoard(result, true); });
+      } else {
+        fetchJson("/api/leaderboard/quiz/" + tabId).then(function (result) { showBoard(result, false); });
+      }
+    }
+
+    fetchJson("/api/auth/me").then(function (result) {
+      if (result.ok && result.data.user) me = result.data.user.username;
+    });
+
+    fetchJson("/api/quizzes").then(function (result) {
+      if (!result.ok) {
+        setStatus(result.data.error || "Could not load the quizzes.");
+        return;
+      }
+      var tabs = document.getElementById("tabs");
+      var overallBtn = document.createElement("button");
+      overallBtn.type = "button";
+      overallBtn.textContent = "Overall";
+      overallBtn.setAttribute("data-tab", "overall");
+      overallBtn.addEventListener("click", function () { selectTab("overall"); });
+      tabs.appendChild(overallBtn);
+      result.data.quizzes.forEach(function (quiz) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = quiz.name;
+        btn.setAttribute("data-tab", String(quiz.id));
+        btn.addEventListener("click", function () { selectTab(quiz.id); });
+        tabs.appendChild(btn);
+      });
+      selectTab("overall");
+    });
+  </script>
+</body>
+</html>

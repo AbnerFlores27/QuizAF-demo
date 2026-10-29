@@ -12,6 +12,7 @@ const pool = require("./db");
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
 const quizRoutes = require("./routes/quiz");
+const leaderboardRoutes = require("./routes/leaderboard");
 const { loadQuestions } = require("./db/seed-questions");
 
 const app = express();
@@ -50,6 +51,7 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/quizzes", quizRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
 
 // Any other /api/ path is a typo, not a missing page.
 app.use("/api", (req, res) => {
@@ -62,19 +64,25 @@ async function start() {
   // Make sure the tables exist before the first request comes in.
   const schemaSql = fs.readFileSync(path.join(__dirname, "db", "schema.sql"), "utf8");
   await pool.query(schemaSql);
-  // Phase 2: load the questions from the CSV at every startup - the
-  // CSV file is the source of truth, so updated questions only need
-  // a server restart (no shell commands needed).
+  // Phase 4: the DATABASE is now the source of truth for questions.
+  // The CSV only fills the questions table when it is EMPTY, so edits
+  // made with the admin question editor survive a server restart.
   try {
-    const loaded = await loadQuestions(pool);
-    console.log("Loaded " + loaded + " quiz questions automatically.");
+    const count = await pool.query("SELECT COUNT(*)::int AS n FROM questions");
+    if (count.rows[0].n === 0) {
+      const loaded = await loadQuestions(pool);
+      console.log("Loaded " + loaded + " quiz questions automatically.");
+    } else {
+      console.log("Questions already in the database: " + count.rows[0].n + ". Keeping them (admin edits stick).");
+    }
   } catch (err) {
-    console.error("Could not load the quiz questions: " + err.message);
+    console.error("Could not check the questions table: " + err.message);
   }
   app.listen(PORT, "0.0.0.0", () => {
     console.log("Phase 1 running: register, log in, log out.");
     console.log("Phase 3 running: finished quizzes save to your history.");
-    console.log("SERVER CODE: OCT29-FIXES (stable question ids + quiz review). If you can read this line, the fixed code is running.");
+    console.log("Phase 4 running: leaderboards + admin question editor.");
+    console.log("SERVER CODE: PHASE4. If you can read this line, Phase 4 is running.");
   });
 }
 

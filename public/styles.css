@@ -91,6 +91,7 @@ h1::after {
   border-radius: 4px;
   margin-top: 8px;
 }
+h2 { color: #122b4a; font-size: 20px; margin: 22px 0 6px; }
 #status { color: #5a6b82; }
 
 /* ---------- forms ---------- */
@@ -221,6 +222,42 @@ tbody tr:last-child td:last-child { border-radius: 0 0 10px 0; }
 .review-ok { color: #14532d; margin: 2px 0 0; font-weight: 600; }
 .review-no { color: #7f1d1d; margin: 2px 0 0; font-weight: 600; }
 .results button { margin-top: 14px; }
+
+/* ---------- Phase 4: leaderboard + admin editor ---------- */
+.caption { color: #5a6b82; font-size: 14px; margin-top: 6px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px; }
+.tabs button {
+  margin: 0;
+  padding: 8px 16px;
+  font-size: 14px;
+  background: #ffffff;
+  color: #16243a;
+  border: 2px solid #d7dbe3;
+  border-radius: 999px;
+  box-shadow: none;
+}
+.tabs button:hover { background: #fff8ea; color: #16243a; transform: none; box-shadow: none; border-color: #f5a524; }
+.tabs button.active { background: #122b4a; color: #ffd166; border-color: #122b4a; }
+.small-btn { margin: 8px 0 0; padding: 7px 14px; font-size: 13px; }
+.me-row td { background: #fff3d6 !important; font-weight: 800; }
+.q-item { border: 2px solid #e2e0d6; border-radius: 12px; padding: 12px 16px; margin-top: 12px; background: #fbfaf6; }
+.q-item .q-text { font-weight: 800; color: #122b4a; margin: 0 0 4px; }
+.q-item p { margin: 3px 0; font-size: 14.5px; }
+.q-correct { color: #14532d; font-weight: 800; }
+.row-error { color: #8a1f1f; font-weight: 600; font-size: 14px; }
+.success { color: #14532d; background: #e9f7ee; border-left: 5px solid #34a853; padding: 10px 12px; border-radius: 6px; }
+textarea, select {
+  width: 100%;
+  padding: 11px 13px;
+  margin-top: 4px;
+  border: 2px solid #d7dbe3;
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: inherit;
+  background: #fbfcfe;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+textarea:focus, select:focus { outline: none; border-color: #f5a524; background: #ffffff; }
 
 /* ---------- small screens ---------- */
 @media (max-width: 600px) {

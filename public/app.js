@@ -3,6 +3,18 @@
   var navAuth = document.getElementById("nav-auth");
   if (!navAuth) return;
 
+  // Phase 4: every page gets a Leaderboard link. Pages that already
+  // have one in their own nav skip this (no double links).
+  (function () {
+    var holder = navAuth.parentNode;
+    if (!holder) return;
+    if (holder.querySelector('a[href="/leaderboard.html"]')) return;
+    var link = document.createElement("a");
+    link.href = "/leaderboard.html";
+    link.textContent = "Leaderboard";
+    holder.insertBefore(link, navAuth);
+  })();
+
   // Replit's free servers sleep. The FIRST request after waking can fail
   // while the server starts - that used to look like being logged out.
   // So we try a few times before giving up.
@@ -30,10 +42,17 @@
         '<a href="/login.html">Log in</a> <a href="/register.html">Register</a>';
       return;
     }
-    var adminLink = user.role === "admin" ? ' <a href="/admin.html">Admin</a>' : "";
+    // Phase 4: admins get the question editor + CSV upload links too.
+    var adminLinks = "";
+    if (user.role === "admin") {
+      adminLinks =
+        ' <a href="/admin.html">Admin</a>' +
+        ' <a href="/admin-questions.html">Question editor</a>' +
+        ' <a href="/admin-csv.html">CSV upload</a>';
+    }
     navAuth.innerHTML =
       "<span>" + user.username + " (" + user.role + ")</span>" +
-      adminLink +
+      adminLinks +
       ' <button type="button" id="logout-btn">Log out</button>';
     document.getElementById("logout-btn").addEventListener("click", function () {
       fetch("/api/auth/logout", { method: "POST" }).then(function () {
