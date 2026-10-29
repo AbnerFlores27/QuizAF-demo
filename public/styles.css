@@ -1,93 +1,199 @@
-/* California Sports Quiz - one small stylesheet for every page. */
+/* California Sports Quiz - sporty template look.
+   CSS-only redesign: no HTML or logic changes, every page keeps
+   working exactly the same - it just looks better now. */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap");
+
 * { box-sizing: border-box; }
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  background: #f5f6f8;
-  color: #1f2933;
+  font-family: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: linear-gradient(160deg, #fdf6ec 0%, #f2f4f8 60%);
+  color: #16243a;
   line-height: 1.6;
+  min-height: 100vh;
 }
+
+a { color: #1f4f9c; text-decoration: none; font-weight: 600; }
+a:hover { text-decoration: underline; }
+
+/* ---------- top navigation ---------- */
 .topnav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 8px 16px;
   padding: 14px 24px;
-  background: #ffffff;
-  border-bottom: 1px solid #e4e7eb;
+  background: #122b4a;
+  border-bottom: 3px solid #f5a524;
+  box-shadow: 0 2px 10px rgba(18, 43, 74, 0.35);
 }
-.topnav a { color: #1f2933; text-decoration: none; margin-left: 12px; }
-.topnav a:hover { color: #2563eb; }
-.brand { font-weight: 700; font-size: 18px; margin-left: 0; }
-.topnav span { color: #52606d; }
-main { max-width: 720px; margin: 40px auto; padding: 0 16px; }
-.card {
-  background: #ffffff;
-  border: 1px solid #e4e7eb;
-  border-radius: 8px;
-  padding: 24px 28px;
-}
-h1 { margin-top: 0; font-size: 24px; }
-label { display: block; margin-top: 14px; font-weight: 600; }
-input {
-  width: 100%;
-  padding: 9px 12px;
-  margin-top: 4px;
-  border: 1px solid #cbd2d9;
-  border-radius: 6px;
-  font-size: 15px;
-}
-/* The little answer circles: keep them small and on the same line as
-   the answer text (the big input rule above was stretching them). */
-input[type="radio"] {
-  width: auto;
-  margin: 0 8px 0 0;
-  accent-color: #2563eb;
-}
-button {
-  margin-top: 18px;
-  padding: 9px 18px;
-  background: #2563eb;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-size: 15px;
+.topnav a { color: #e8edf5; text-decoration: none; margin-left: 12px; font-weight: 600; }
+.topnav a:hover { color: #ffd166; text-decoration: none; }
+.brand { font-weight: 800; font-size: 19px; letter-spacing: 0.3px; margin-left: 0; }
+.brand::before { content: "🏆 "; }
+.topnav span { color: #b8c4d6; margin-left: 12px; font-weight: 600; }
+.topnav button {
+  margin: 0 0 0 12px;
+  padding: 6px 14px;
+  background: transparent;
+  color: #ffd166;
+  border: 2px solid #ffd166;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 13px;
   cursor: pointer;
 }
-button:hover { background: #1e4fd8; }
-.error { color: #c81e1e; background: #fdecea; padding: 10px 12px; border-radius: 6px; }
-.hidden { display: none; }
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e4e7eb; }
-th { color: #52606d; }
+.topnav button:hover { background: #ffd166; color: #122b4a; }
 
-/* Phase 2: quiz pages. */
-.quiz-link {
-  display: block;
-  padding: 10px 14px;
-  margin-top: 10px;
-  border: 1px solid #cbd2d9;
-  border-radius: 6px;
-  background: #f9fafb;
-  color: #1f2933;
-  text-decoration: none;
+/* ---------- page + cards ---------- */
+main { max-width: 760px; margin: 40px auto; padding: 0 16px; }
+.card {
+  background: #ffffff;
+  border: 1px solid #e6e2d8;
+  border-top: 5px solid #f5a524;
+  border-radius: 14px;
+  padding: 26px 30px;
+  box-shadow: 0 10px 30px rgba(22, 36, 58, 0.08);
 }
-.quiz-link:hover { border-color: #2563eb; color: #2563eb; }
+h1 {
+  margin: 0 0 10px;
+  font-size: 28px;
+  font-weight: 800;
+  color: #122b4a;
+  letter-spacing: 0.2px;
+}
+h1::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 5px;
+  background: #f5a524;
+  border-radius: 3px;
+  margin-top: 6px;
+}
+
+/* ---------- forms ---------- */
+label { display: block; margin-top: 14px; font-weight: 700; color: #16243a; }
+input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 4px;
+  border: 2px solid #d7dbe3;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  background: #fbfcfe;
+}
+input:focus { outline: none; border-color: #f5a524; background: #ffffff; }
+/* The little answer circles stay SMALL and sit next to the text
+   (bug fix kept: the rule above used to stretch them). */
+input[type="radio"] { width: auto; margin: 0; accent-color: #f5a524; }
+button {
+  margin-top: 18px;
+  padding: 11px 22px;
+  background: linear-gradient(180deg, #1a3a63, #122b4a);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+}
+button:hover { background: linear-gradient(180deg, #f5a524, #e0940f); color: #122b4a; }
+.error {
+  color: #8a1f1f;
+  background: #fdecec;
+  border-left: 5px solid #d13c3c;
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+.hidden { display: none; }
+
+/* ---------- tables (admin + history) ---------- */
+table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 15px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #e6e2d8; }
+th { background: #122b4a; color: #ffffff; font-weight: 700; }
+tbody tr:nth-child(even) { background: #f7f5ef; }
+
+/* ---------- quiz list ---------- */
+#quiz-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.quiz-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 2px solid #e2e0d6;
+  border-left: 8px solid #122b4a;
+  border-radius: 10px;
+  background: #fbfaf6;
+  color: #16243a;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 17px;
+  margin: 0;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.quiz-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(22, 36, 58, 0.14);
+  text-decoration: none;
+  color: #16243a;
+  border-left-color: #f5a524;
+}
+.quiz-link::after { content: "▶"; margin-left: auto; color: #f5a524; font-size: 14px; }
+
+/* Emoji + accent color per sport (1 Basketball, 2 Football, 3 Soccer, 4 Baseball, 5 Hockey) */
+.quiz-link:nth-child(1) { border-left-color: #e8722b; }
+.quiz-link:nth-child(1)::before { content: "🏀"; font-size: 22px; }
+.quiz-link:nth-child(2) { border-left-color: #2f7d32; }
+.quiz-link:nth-child(2)::before { content: "🏈"; font-size: 22px; }
+.quiz-link:nth-child(3) { border-left-color: #2563eb; }
+.quiz-link:nth-child(3)::before { content: "⚽"; font-size: 22px; }
+.quiz-link:nth-child(4) { border-left-color: #d13c3c; }
+.quiz-link:nth-child(4)::before { content: "⚾"; font-size: 22px; }
+.quiz-link:nth-child(5) { border-left-color: #6b4226; }
+.quiz-link:nth-child(5)::before { content: "🏒"; font-size: 22px; }
+
+/* ---------- quiz page ---------- */
 .question { margin-top: 22px; }
-.question h2 { font-size: 17px; margin: 0 0 8px; }
+.question + .question { padding-top: 20px; border-top: 2px dashed #e2e0d6; }
+.question h2 { font-size: 17px; margin: 0 0 10px; color: #122b4a; font-weight: 800; }
 .choice {
   display: flex;
   align-items: center;
   margin-top: 6px;
-  font-weight: 400;
+  padding: 9px 12px;
+  border: 2px solid #e2e0d6;
+  border-radius: 8px;
+  background: #fbfaf6;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
 }
-.results { margin-top: 16px; padding: 12px 14px; border-radius: 6px; }
-.results.good { background: #e6f6ec; color: #14532d; }
-.results.bad { background: #fdecea; color: #7f1d1d; }
-.results p { margin: 6px 0; }
+.choice:hover { border-color: #f5a524; background: #fff8ea; }
+.choice:has(input:checked) { border-color: #122b4a; background: #eef3fa; }
 
-/* Review shown after you submit a quiz. */
-.review-item { margin-top: 12px; padding-top: 10px; border-top: 1px solid #e4e7eb; }
-.review-question { font-weight: 600; margin: 0; }
-.review-ok { color: #14532d; margin: 2px 0 0; }
-.review-no { color: #7f1d1d; margin: 2px 0 0; }
+/* ---------- results + review ---------- */
+.results { margin-top: 20px; padding: 14px 16px; border-radius: 10px; border: 2px solid transparent; }
+.results.good { background: #e9f7ee; border-color: #b7e2c6; color: #14532d; }
+.results.bad { background: #fdecec; border-color: #f2c1c1; color: #7f1d1d; }
+.results p { margin: 6px 0; font-weight: 700; }
+.review-item { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(0, 0, 0, 0.12); }
+.review-question { font-weight: 800; margin: 0; }
+.review-ok { color: #14532d; margin: 2px 0 0; font-weight: 600; }
+.review-no { color: #7f1d1d; margin: 2px 0 0; font-weight: 600; }
+.results button { margin-top: 14px; }
+
+/* ---------- small screens ---------- */
+@media (max-width: 600px) {
+  .topnav { padding: 12px 16px; }
+  .topnav a, .topnav span { margin-left: 8px; font-size: 14px; }
+  .card { padding: 20px 18px; }
+  h1 { font-size: 23px; }
+}
