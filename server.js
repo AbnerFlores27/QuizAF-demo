@@ -62,13 +62,12 @@ async function start() {
   // Make sure the tables exist before the first request comes in.
   const schemaSql = fs.readFileSync(path.join(__dirname, "db", "schema.sql"), "utf8");
   await pool.query(schemaSql);
-  // Phase 2: if the question tables are empty, load the CSV once.
+  // Phase 2: load the questions from the CSV at every startup - the
+  // CSV file is the source of truth, so updated questions only need
+  // a server restart (no shell commands needed).
   try {
-    const count = await pool.query("SELECT COUNT(*)::int AS n FROM questions");
-    if (count.rows[0].n === 0) {
-      const loaded = await loadQuestions(pool);
-      console.log("Loaded " + loaded + " quiz questions automatically.");
-    }
+    const loaded = await loadQuestions(pool);
+    console.log("Loaded " + loaded + " quiz questions automatically.");
   } catch (err) {
     console.error("Could not load the quiz questions: " + err.message);
   }
