@@ -1,4 +1,4 @@
-// Abner's Quiz Site - Phase 1: accounts and login.
+// California Sports Quiz - Phase 1: accounts and login.
 // A clean Express server: it serves the pages in public/ and the
 // small JSON API under /api/. Login sessions live in Postgres.
 
@@ -73,6 +73,7 @@ async function start() {
   }
   app.listen(PORT, "0.0.0.0", () => {
     console.log("Phase 1 running: register, log in, log out.");
+    console.log("Phase 3 running: finished quizzes save to your history.");
   });
 }
 

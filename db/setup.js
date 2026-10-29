@@ -6,7 +6,7 @@ const pool = require("./index");
 async function main() {
   const sql = fs.readFileSync(path.join(__dirname, "schema.sql"), "utf8");
   await pool.query(sql);
-  console.log("Tables ready (users + session).");
+  console.log("Tables ready.");
   await pool.end();
 }
 

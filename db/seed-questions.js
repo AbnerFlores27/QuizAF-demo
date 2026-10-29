@@ -1,4 +1,4 @@
-// Phase 2: loads the 50 sports questions from templates/questions.csv
+// Phase 2: loads the 50 California sports questions from templates/questions.csv
 // into the quizzes + questions tables. Safe to run again at any time.
 
 const fs = require("fs");
