@@ -1,51 +1,51 @@
 quiz_id,question_text,choice_a,choice_b,choice_c,choice_d,correct_answer
-1,Which classic arcade game from 1972 features two paddles and a bouncing ball?,Pong,Breakout,Asteroids,Space Invaders,A
-1,In the maze game Pac-Man what does the hungry character mostly eat?,Ghosts,Dots,Coins,Cherries,B
-1,Which company created the Game Boy and the Switch?,Sega,Sony,Nintendo,Microsoft,C
-1,Which handheld game console launched in 1989 and played swappable cartridges?,Game Boy,Nintendo DS,PSP,VR headset,A
-1,What color is Sonic the Hedgehog?,Red,Green,Blue,Yellow,C
-1,Which company makes the PlayStation console?,Microsoft,Nintendo,Sega,Sony,D
-1,Which sandbox video game lets players build with blocks and dodge creepers?,Minecraft,Roblox,Terraria,Fortnite,A
-1,What are esports?,Games played alone,Racing games about trucks,Competitive video game tournaments,Exercise games,C
-1,Which classic 1970s arcade game has players shoot rows of descending aliens?,Galaga,Pac-Man,Frogger,Space Invaders,D
-1,What does an arcade machine usually need before it lets you play?,A ticket,A coin,A password,A key,B
-2,How many players from one basketball team are on the court at the same time?,Four,Five,Six,Seven,B
-2,What sport is played at the famous Wimbledon tournament?,Tennis,Golf,Cricket,Badminton,A
-2,In American football how many points is a touchdown worth before the extra point?,Three,Seven,Six,Ten,C
-2,How many strikes does a baseball batter get before striking out?,Two,Three,Four,Five,B
-2,How often are the Summer Olympic Games held?,Every year,Every two years,Every three years,Every four years,D
-2,What is it called when a soccer player kicks the ball into the net?,A home run,A slam dunk,A goal,A birdie,C
-2,How many rings are on the Olympic flag?,Three,Four,Six,Five,D
-2,Which sport is played on ice with a puck?,Hockey,Curling,Skiing,Swimming,A
-2,What is the biggest international soccer tournament called?,The Super Bowl,The World Cup,The World Series,The FA Cup,B
-2,In baseball what is it called when a batter hits the ball over the fence and rounds the bases?,A home run,A touchdown,A strike,A hole in one,A
-3,What does WWW stand for?,World Web Wire,Wide World Web,World Wide Web,Web World Wide,C
-3,Which company makes the iPhone?,Samsung,Apple,Google,Microsoft,B
-3,What does Wi-Fi let your phone or laptop do?,Charge without a plug,Print on paper,Play music louder,Connect to the internet without wires,D
-3,Which company makes the Galaxy phones?,Samsung,Apple,Sony,Nokia,A
-3,In an email address what does the @ symbol stand for?,Around,At,Away,Above,B
-3,What does USB stand for?,Universal Serial Bus,United System Backup,User Software Box,Ultra Speed Band,A
-3,Which company created the most used search engine on the internet?,Yahoo,Amazon,Google,eBay,C
-3,What does it mean to stream a movie?,Download the whole file first,Watch it over the internet without saving the whole file,Record it onto a DVD,Watch it only on a TV,B
-3,Where do your files go when you save them to the cloud?,Into your backpack,Onto a USB stick,Onto servers on the internet,Onto your phone screen,C
-3,What is an app short for?,Apple,Application,Appliance,Approval,B
-4,Which animated movie is about a young lion who becomes king?,Madagascar,The Lion King,Finding Nemo,Shrek,B
-4,What do people call the golden statuette given at the Academy Awards?,An Emmy,A Grammy,An Oscar,A Golden Globe,C
-4,What is a sequel?,A movie made before the first one,A movie that continues the story of an earlier one,A remake of an old TV show,A movie with no talking,B
-4,Which animation studio made Toy Story?,DreamWorks,Disney,Illumination,Pixar,D
-4,What does TV stand for?,Television,Transistor Vision,Travel Video,True View,A
-4,Which streaming service is known for shows like Stranger Things?,Hulu,Disney+,Netflix,Spotify,C
-4,What is a voice actor?,An actor who whispers,A singer in a band,Someone whose voice plays an animated character,A person who writes movies,C
-4,What is the name of the wizarding school in the Harry Potter movies?,Hogwarts,Middle-earth,Panem,Neverland,A
-4,What is a movie trailer?,A behind-the-scenes documentary,A short preview of an upcoming movie,The last five minutes of a film,A movie about trucks,B
-4,Which company makes superhero movies like the Avengers?,DC,Marvel,Universal,Paramount,B
-5,How many strings does a standard guitar have?,Four,Five,Six,Seven,C
-5,Which instrument usually has 88 keys?,Organ,Piano,Accordion,Harp,B
-5,Who is often called the King of Pop?,Elvis Presley,Michael Jackson,Prince,Justin Timberlake,B
-5,What does DJ stand for?,Disc jockey,Data jam,Drum joiner,Dance judge,A
-5,What is the steady pulse of a song that you tap your foot to?,The bridge,The chorus,The beat,The key,C
-5,Which famous band came from Liverpool in England?,The Beatles,The Rolling Stones,Queen,Nirvana,A
-5,What does it mean to sing karaoke?,Perform a solo concert,Play an instrument on stage,Sing along to recorded music without the lead vocals,Dance without music,C
-5,What is a music genre?,A style or category of music,The name of a guitar,A famous singer's autograph,The length of a song,A
-5,Which instrument family do the violin and cello belong to?,Brass,Strings,Woodwind,Percussion,B
-5,What is the chorus of a song?,The quiet beginning,A long drum solo,The repeated catchy section,The music video,C
+1,How many players from one basketball team are on the court at the same time?,3,5,7,9,B
+1,How many points is a shot made from behind the three-point line worth?,1,2,3,4,C
+1,How many minutes long is one quarter in an NBA game?,10,11,12,15,C
+1,What is it called when a player grabs the ball after a missed shot?,A rebound,A block,A steal,A dunk,A
+1,How high is a regulation basketball rim?,8 feet,9 feet,12 feet,10 feet,D
+1,Which NBA team drafted Michael Jordan in 1984?,Los Angeles Lakers,Chicago Bulls,Boston Celtics,Detroit Pistons,B
+1,How many personal fouls does it take for an NBA player to foul out?,4,5,6,7,C
+1,What is it called when a player jumps and slams the ball straight through the hoop?,A layup,A jumper,A free throw,A slam dunk,D
+1,How many seconds does an NBA team have to attempt a shot?,20,24,30,35,B
+1,Which famous player is nicknamed King James?,Kevin Durant,Stephen Curry,James Harden,LeBron James,D
+2,How many players from one football team are on the field at once?,9,10,11,12,C
+2,How many points is a touchdown worth?,3,6,7,8,B
+2,How many yards long is the NFL field of play?,50,90,100,120,C
+2,What is the Super Bowl trophy named after?,Walter Payton,Joe Montana,Bear Bryant,Vince Lombardi,D
+2,Which position usually throws the football?,The kicker,The quarterback,The receiver,The running back,B
+2,How many yards does a team need to gain for a first down?,5,10,15,20,B
+2,What is it called when the quarterback is tackled behind the line of scrimmage?,A sack,A fumble,A blitz,A punt,A
+2,How many points is a safety worth?,1,2,3,6,B
+2,How many points is a made field goal worth?,1,2,3,4,C
+2,How many minutes long is one NFL quarter?,10,12,15,20,C
+3,How many players from one soccer team are on the field at once?,9,10,11,12,C
+3,Which body part can an outfield player NOT use to play the ball?,Head,Chest,Foot,Hands,D
+3,How many minutes long is a standard professional soccer match?,60,80,90,120,C
+3,What is it called when one player scores three goals in a game?,A brace,A hat-trick,A volley,A clean sheet,B
+3,Which country hosted the first World Cup in 1930?,England,Brazil,Uruguay,France,C
+3,How often is the FIFA World Cup held?,Every year,Every 2 years,Every 5 years,Every 4 years,D
+3,What is the area in front of the goal where the goalkeeper may use their hands called?,The penalty box,The corner arc,The center circle,The goal line,A
+3,What restarts play after the ball goes out over the sideline?,A corner,A throw-in,A goal kick,A free kick,B
+3,Which country has won the most World Cups?,Germany,Italy,Brazil,Argentina,C
+3,What decides a knockout game that is still tied after extra time?,A coin flip,A rematch,Added substitution,A penalty shootout,D
+4,How many innings are in a standard baseball game?,6,7,8,9,D
+4,How many strikes does it take to strike out a batter?,2,3,4,5,B
+4,How many balls does it take for a batter to earn a walk?,3,4,5,6,B
+4,What is it called when a batter hits the ball over the outfield wall?,A single,A double,A triple,A home run,D
+4,How many bases does a runner touch to score a run?,First base only,Two bases,Three bases,All four bases,D
+4,Who stands behind home plate and catches the pitches?,The shortstop,The catcher,The pitcher,The umpire,B
+4,How many outs does a team need to end its half of an inning?,2,3,4,6,B
+4,What is a grand slam?,A home run with the bases loaded,An inside-the-park double,A diving catch,A bases-empty walk,A
+4,Which league is the top professional baseball league in the United States?,The NFL,The NBA,MLB,The NHL,C
+4,How many players are in a standard batting lineup?,7,8,9,10,C
+5,How often are the Summer Olympics held?,Every year,Every 2 years,Every 4 years,Every 6 years,C
+5,How many rings are in the Olympic symbol?,3,4,5,7,C
+5,Which color is the leftmost Olympic ring?,Yellow,Black,Green,Blue,D
+5,Which city hosted the first modern Olympics in 1896?,Rome,Athens,Paris,London,B
+5,What does the Olympic motto Citius Altius Fortius mean?,Stronger Braver Wiser,Run Jump Throw,Faster Higher Stronger,Citizens Athletes Friends,C
+5,What is the highest medal an athlete can win at the Olympics?,Bronze,Silver,Platinum,Gold,D
+5,Where is the Olympic flame lit before every Summer Games?,Beijing,London,Olympia in Greece,New York,C
+5,Which country hosted the 2016 Summer Olympics?,China,Brazil,Japan,Spain,B
+5,What do the five Olympic rings stand for?,The five events,The five continents,The five seasons,The founding cities,B
+5,Which country created the ancient Olympic Games?,Italy,Egypt,Greece,Turkey,C

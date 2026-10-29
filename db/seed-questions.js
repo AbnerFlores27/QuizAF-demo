@@ -1,16 +1,16 @@
-// Phase 2: loads the 50 questions from templates/questions.csv into
-// the quizzes + questions tables. Safe to run again at any time.
+// Phase 2: loads the 50 sports questions from templates/questions.csv
+// into the quizzes + questions tables. Safe to run again at any time.
 
 const fs = require("fs");
 const path = require("path");
 const pool = require("./index");
 
 const QUIZ_NAMES = {
-  1: "Gaming History",
-  2: "Sports",
-  3: "Tech & Internet",
-  4: "Movies & TV",
-  5: "Music",
+  1: "Basketball",
+  2: "Football",
+  3: "Soccer",
+  4: "Baseball",
+  5: "Olympics",
 };
 
 // Parse + validate the CSV. Returns { rows, errors }.

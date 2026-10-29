@@ -23,8 +23,8 @@ that is a player. `npm run reset` wipes the tables for a clean slate.
 
 ## Phase 2: quizzes
 
-Five quizzes (Gaming History, Sports, Tech & Internet, Movies & TV, Music)
+Five sports quizzes (Basketball, Football, Soccer, Baseball, Olympics)
 with 10 questions each. Questions come from `templates/questions.csv`;
-the server loads them automatically at startup if the tables are empty
-(`npm run seed-questions` also works). Answers are graded by the SERVER -
+the server reloads them from the CSV at every startup, so updated
+questions just need a restart (`npm run seed-questions` also works). Answers are graded by the SERVER -
 the browser never sees a correct answer before submitting.
