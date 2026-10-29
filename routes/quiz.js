@@ -110,7 +110,9 @@ router.post("/:id/submit", requireAuth, async (req, res) => {
     }
     const result = gradeSubmission(rows.rows, answers);
     if (!result) {
-      return res.status(400).json({ error: "That submission has invalid answers." });
+      // The most common cause: a quiz page left open from before the
+      // last server restart, still holding old question ids.
+      return res.status(400).json({ error: "That submission has invalid answers. This usually means the page is old - refresh the page (Ctrl + Shift + R) and take the quiz again." });
     }
     // Phase 3: save this FINISHED attempt. Only a submitted quiz gets a
     // row (unfinished never counts) and every retry is a new record.
