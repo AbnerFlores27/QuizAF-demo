@@ -74,6 +74,7 @@ async function start() {
   app.listen(PORT, "0.0.0.0", () => {
     console.log("Phase 1 running: register, log in, log out.");
     console.log("Phase 3 running: finished quizzes save to your history.");
+    console.log("SERVER CODE: OCT29-FIXES (stable question ids + quiz review). If you can read this line, the fixed code is running.");
   });
 }
 
