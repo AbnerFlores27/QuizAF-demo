@@ -24,12 +24,13 @@ that is a player. `npm run reset` wipes the tables for a clean slate.
 
 ## Phase 2: quizzes
 
-Five sports quizzes (Basketball, Football, Soccer, Baseball, Olympics)
-with 10 California sports questions each. Questions come from
-`templates/questions.csv`; the server reloads them from the CSV at
-every startup, so updated questions just need a restart (`npm run
-seed-questions` also works). Answers are graded by the SERVER - the
-browser never sees a correct answer before submitting.
+Five sports quizzes (Basketball, Football, Soccer, Baseball, Hockey)
+with 10 California sports questions each - all about California teams,
+players, titles, and stadiums. Questions come from `templates/questions.csv`;
+the server reloads them from the CSV at every startup, so updated
+questions just need a restart (`npm run seed-questions` also works).
+Answers are graded by the SERVER - the browser never sees a correct
+answer before submitting.
 
 ## Phase 3: attempt history
 
